@@ -1,12 +1,6 @@
 # Coywin: The First Decentralized Crypto-Imagery Network 🌌
 
-> **⚠️ LEGAL DISCLAIMER & IMPORTANT NOTICE ⚠️**
-> 
-> **THIS PROJECT HAS ABSOLUTELY NO FINANCIAL VALUE.** 
-> **THERE ARE NO TOKENS, NO COINS, AND NO FINANCIAL ASSETS INVOLVED.**
-> **THERE ARE NO BUYING, SELLING, OR TRADING FEATURES.**
-> 
-> Coywin is strictly a **Digital Art Experiment** (Crypto-Imagery). The output of the mining process is purely procedural digital art (images) and cryptographic certificates of authenticity. This project cannot be used for financial transactions and is entirely exempt from securities or financial regulations.
+
 
 ---
 
@@ -30,8 +24,17 @@ We believe cryptography should be human. Coywin abandons cold, intimidating hexa
 3. Open your browser and visit `http://localhost:8080` to see the gallery and the "PQC Secured" badges in action!
 
 ## 📜 Documentation
-For a deep dive into the architecture, mathematics, and philosophy behind Coywin, please read the included scientific papers:
+For a deep dive into the architecture,
+mathematics, and philosophy behind Coywin, please read the included scientific papers:
 - `Scientific_Documentation_Coywin.docx` (English)
 - `Dokumentasi_Ilmiah_Coywin.docx` (Indonesian)
 
-*(Note: The `auto_miner.py` script has been intentionally excluded from this public repository.)*
+
+> **⚠️ LEGAL DISCLAIMER & IMPORTANT  NOTICE ⚠️**>
+> 
+> **THIS PROJECT HAS ABSOLUTELY NO FINANCIAL VALUE.** 
+> **THERE ARE NO TOKENS, NO COINS, AND NO FINANCIAL ASSETS INVOLVED.**
+> **THERE ARE NO BUYING, SELLING, OR TRADING FEATURES.**
+> 
+> Coywin is strictly a **Digital Art Experiment** (Crypto-Imagery). The output of the mining process is purely procedural digital art (images) and cryptographic certificates of authenticity. This project cannot be used for financial transactions and is entirely exempt from securities or financial regulations.
+
