@@ -44,7 +44,6 @@ python coywin_watermark.py extract <stolen_image.png> <PRIVATE_KEY>
 For a deep dive into the architecture,
 mathematics, and philosophy behind Coywin, please read the included scientific papers:
 - `Scientific_Documentation_Coywin.docx` (English)
-- `Dokumentasi_Ilmiah_Coywin.docx` (Indonesian)
 
 
 > **⚠️ LEGAL DISCLAIMER & IMPORTANT  NOTICE ⚠️**>
@@ -54,4 +53,3 @@ mathematics, and philosophy behind Coywin, please read the included scientific p
 > **THERE ARE NO BUYING, SELLING, OR TRADING FEATURES.**
 > 
 > Coywin is strictly a **Digital Art Experiment** (Crypto-Imagery). The output of the mining process is purely procedural digital art (images) and cryptographic certificates of authenticity. This project cannot be used for financial transactions and is entirely exempt from securities or financial regulations.
-
