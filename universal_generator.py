@@ -390,7 +390,8 @@ def generate_universal(seed_string, output_filename=None):
     coywin_name = bip_coywin.hash_to_name(h)
     
     if output_filename is None:
-        output_filename = f"{coywin_name}_{h[:8]}.png"
+        os.makedirs("output_images", exist_ok=True)
+        output_filename = os.path.join("output_images", f"{coywin_name}_{h[:8]}.png")
         
     img.save(output_filename)
     

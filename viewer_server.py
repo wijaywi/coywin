@@ -14,17 +14,20 @@ class CoywinHandler(http.server.SimpleHTTPRequestHandler):
             self.end_headers()
             
             images = []
-            for f in os.listdir('.'):
-                if f.endswith('.png') and '_' in f:
-                    stat = os.stat(f)
-                    # Expected format: Name_hashpart.png (e.g. Fihekilfong_8a7b6c5d.png)
-                    parts = f.replace('.png', '').split('_')
-                    if len(parts) >= 2:
-                        name = parts[0]
-                        hash_part = parts[-1]
-                        
-                        pqc_file = f.replace('.png', '.pqc')
-                        pqc_secured = os.path.exists(pqc_file)
+            img_dir = 'output_images'
+            if os.path.exists(img_dir):
+                for f in os.listdir(img_dir):
+                    if f.endswith('.png') and '_' in f:
+                        filepath = os.path.join(img_dir, f)
+                        stat = os.stat(filepath)
+                        # Expected format: Name_hashpart.png (e.g. Fihekilfong_8a7b6c5d.png)
+                        parts = f.replace('.png', '').split('_')
+                        if len(parts) >= 2:
+                            name = parts[0]
+                            hash_part = parts[-1]
+                            
+                            pqc_file = filepath.replace('.png', '.pqc')
+                            pqc_secured = os.path.exists(pqc_file)
                         
                         miner_name = "Unknown"
                         miner_address = "Unknown"
@@ -38,7 +41,7 @@ class CoywinHandler(http.server.SimpleHTTPRequestHandler):
                                 pass
                         
                         images.append({
-                            'filename': f,
+                            'filename': f'output_images/{f}',
                             'name': name,
                             'hash': hash_part,
                             'time': stat.st_ctime,
