@@ -23,6 +23,23 @@ We believe cryptography should be human. Coywin abandons cold, intimidating hexa
    ```
 3. Open your browser and visit `http://localhost:8080` to see the gallery and the "PQC Secured" badges in action!
 
+## 🕵️‍♂️ Coywin Prime LSB Watermark (Encrypted)
+Coywin includes an advanced, military-grade steganography tool. It allows you to embed invisible, encrypted signatures into your generated artworks.
+- **Dynamic Block Sizing**: Adapts perfectly to any image resolution.
+- **Prime Number Grid**: Hides bits precisely on prime number coordinates to evade statistical analysis.
+- **XOR Stream Cipher**: Encrypts the payload using a SHA-256 hash of your Private Key.
+- **Anti-Crop Validation**: The watermark self-destructs if the image structure is cropped or altered.
+
+**Embed a Watermark:**
+```bash
+python coywin_watermark.py embed <original_image.png> <watermarked_output.png> <PRIVATE_KEY>
+```
+
+**Extract a Watermark:**
+```bash
+python coywin_watermark.py extract <stolen_image.png> <PRIVATE_KEY>
+```
+
 ## 📜 Documentation
 For a deep dive into the architecture,
 mathematics, and philosophy behind Coywin, please read the included scientific papers:
