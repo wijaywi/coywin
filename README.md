@@ -1,13 +1,13 @@
-# Coywin: The First Decentralized Crypto-Imagery Network 🌌
+# Coywin: The First Decentralized Generative Art Network 🌌
 
-![Coywin Decentralized Crypto Imagery Network - PoW Algorithmic Digital Art](coiwin_poster.png)
+![Coywin Decentralized Generative Art Network - PoW Algorithmic Digital Art](coiwin_poster.png)
 
 🌐 **Official Website:** [https://wijaywi.github.io/coywin](https://wijaywi.github.io/coywin)
 
 ---
 
 ## 🎨 What is Coywin?
-Coywin is a groundbreaking decentralized network that introduces a new paradigm: **Crypto-Imagery**. Instead of mining for money or financial tokens, nodes on the Coywin network solve Proof-of-Work (PoW) mathematical puzzles to procedurally generate **unique generative algorithmic digital art**. 
+Coywin is a groundbreaking decentralized network that introduces a new paradigm: **Generative Art**. Instead of mining for money or financial tokens, nodes on the Coywin network solve Proof-of-Work (PoW) mathematical puzzles to procedurally generate **unique generative algorithmic digital art**. 
 
 The hash discovered by the miner acts as the absolute DNA for the artwork, defining its category, shapes, colors, and geometry. 
 
@@ -54,4 +54,4 @@ mathematics, and philosophy behind Coywin, please read the included scientific p
 > **THERE ARE NO TOKENS, NO COINS, AND NO FINANCIAL ASSETS INVOLVED.**
 > **THERE ARE NO BUYING, SELLING, OR TRADING FEATURES.**
 > 
-> Coywin is strictly a **Digital Art Experiment** (Crypto-Imagery). The output of the mining process is purely procedural digital art (images) and cryptographic certificates of authenticity. This project cannot be used for financial transactions and is entirely exempt from securities or financial regulations.
+> Coywin is strictly a **Digital Art Experiment** (Generative Art). The output of the mining process is purely procedural digital art (images) and cryptographic certificates of authenticity. This project cannot be used for financial transactions and is entirely exempt from securities or financial regulations.
