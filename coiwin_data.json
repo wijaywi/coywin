@@ -1,0 +1,215 @@
+{
+  "blocks": [
+    {
+      "header": {
+        "prev_hash": "0",
+        "timestamp": 1786190633,
+        "nonce": 0,
+        "merkle_root": "0d75650999ef3417688ae9eea5207b4d6220ab9aefb27e72a7d635cc15cf07e3",
+        "difficulty": 4
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "WSJ 02/Aug/2026 BRICS Nations Announce Alternative Settlement Network to Bypass Dollar",
+            "amount": 0,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "8469e7a2dbd1ac8d82aacf5564b353870f0d298f8cd454dd553017fe9191fb06"
+    },
+    {
+      "header": {
+        "prev_hash": "8469e7a2dbd1ac8d82aacf5564b353870f0d298f8cd454dd553017fe9191fb06",
+        "timestamp": 1786190635,
+        "nonce": 29464,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 4
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "000092dc2434f600425cca0bdfbcb4e7e9b7543697b340dc3a36703600986119"
+    },
+    {
+      "header": {
+        "prev_hash": "000092dc2434f600425cca0bdfbcb4e7e9b7543697b340dc3a36703600986119",
+        "timestamp": 1786190640,
+        "nonce": 20140,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 4
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "0000e4a70d4d524620209c908cfc5643f410c282a05a189bb0628abf2080bfd4"
+    },
+    {
+      "header": {
+        "prev_hash": "0000e4a70d4d524620209c908cfc5643f410c282a05a189bb0628abf2080bfd4",
+        "timestamp": 1786190645,
+        "nonce": 30968,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 4
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "00009a62b80fde1995a5f9f6f77a90f8a87d3c5ab139f47ca59e8a1c583d3380"
+    },
+    {
+      "header": {
+        "prev_hash": "00009a62b80fde1995a5f9f6f77a90f8a87d3c5ab139f47ca59e8a1c583d3380",
+        "timestamp": 1786190650,
+        "nonce": 64159,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 4
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "0000e379615f785af065ecd66a3f98ac629f075c48f10d21bd8a8c5ad4cb530e"
+    },
+    {
+      "header": {
+        "prev_hash": "0000e379615f785af065ecd66a3f98ac629f075c48f10d21bd8a8c5ad4cb530e",
+        "timestamp": 1786190655,
+        "nonce": 293378,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 5
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "00000449e32350e73f7c5e4303ddf6ade508700d9e482f5b90df42499dc8a60a"
+    },
+    {
+      "header": {
+        "prev_hash": "00000449e32350e73f7c5e4303ddf6ade508700d9e482f5b90df42499dc8a60a",
+        "timestamp": 1786190660,
+        "nonce": 795369,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 5
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "00000335c0072956725d8c24390c5deecb2f0a8c365444c40425c9add9de6ed9"
+    },
+    {
+      "header": {
+        "prev_hash": "00000335c0072956725d8c24390c5deecb2f0a8c365444c40425c9add9de6ed9",
+        "timestamp": 1786190665,
+        "nonce": 572592,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 5
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "0000053f5ece47c3baa0249e7d235e973543fb5f85c536c1b18151627af05665"
+    },
+    {
+      "header": {
+        "prev_hash": "0000053f5ece47c3baa0249e7d235e973543fb5f85c536c1b18151627af05665",
+        "timestamp": 1786190670,
+        "nonce": 1861247,
+        "merkle_root": "84a3a719094848d64c7f5c402f83ee66fb1e00014e407e57185451e3fa8ff2dd",
+        "difficulty": 5
+      },
+      "transactions": [
+        {
+          "payload": {
+            "sender": "COINBASE",
+            "receiver": "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e",
+            "amount": 50,
+            "nonce": 0
+          },
+          "ecdsa_signature": "00",
+          "dilithium_signature": "00",
+          "dilithium_public": "00"
+        }
+      ],
+      "hash": "0000047bb73445ffb832e0251df4d6ac73d5e1693b040f44cd3dc5da095f2c0e"
+    }
+  ],
+  "accounts": {
+    "025e36dd04a0e1ce0f6ccbf6546f207ca95b53fe2e9f5bd3f8e43f11121cdf938e": 400
+  },
+  "pending_transactions": []
+}
