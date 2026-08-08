@@ -1,11 +1,13 @@
 # Coywin: The First Decentralized Crypto-Imagery Network 🌌
 
+![Coywin Decentralized Crypto Imagery Network - PoW Algorithmic Digital Art](coiwin_poster.png)
+
 🌐 **Official Website:** [https://wijaywi.github.io/coywin](https://wijaywi.github.io/coywin)
 
 ---
 
 ## 🎨 What is Coywin?
-Coywin is a groundbreaking decentralized network that introduces a new paradigm: **Crypto-Imagery**. Instead of mining for money or financial tokens, nodes on the Coywin network solve Proof-of-Work (PoW) mathematical puzzles to procedurally generate **unique visual art pieces**. 
+Coywin is a groundbreaking decentralized network that introduces a new paradigm: **Crypto-Imagery**. Instead of mining for money or financial tokens, nodes on the Coywin network solve Proof-of-Work (PoW) mathematical puzzles to procedurally generate **unique generative algorithmic digital art**. 
 
 The hash discovered by the miner acts as the absolute DNA for the artwork, defining its category, shapes, colors, and geometry. 
 
