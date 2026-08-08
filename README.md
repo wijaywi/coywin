@@ -1,4 +1,4 @@
-# Coywin: The First Decentralized Generative Art Network 🌌
+# Coywin: The First PQC Decentralized Generative Art Network 🌌
 
 ![Coywin Decentralized Generative Art Network - PoW Algorithmic Digital Art](coiwin_poster.png)
 
