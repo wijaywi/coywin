@@ -431,7 +431,7 @@ def generate_universal(seed_string, output_filename=None):
                 
     print(f"[+] Successfully rendered block: '{seed_string}'")
     print(f"    Name     : {coywin_name}")
-    print(f"    Category : {cat_names[category]}")
+
     print(f"    File     : {output_filename}")
     if pqc_generated:
         print(f"    PQC      : Secured with Dilithium5\n")
