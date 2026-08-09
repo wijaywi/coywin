@@ -46,7 +46,7 @@ python coywin_watermark.py extract <stolen_image.png> <PRIVATE_KEY>
 # 📜 Documentation
 For a deep dive into the architecture,
 mathematics, and philosophy behind Coywin, please read the included scientific papers:
-- `Scientific_Documentation_Coywin.docx` (English)
+- `Scientific_Documentation_Coywin.docx` 
 
 
 > ⚠️ LEGAL DISCLAIMER & IMPORTANT  NOTICE ⚠️>
