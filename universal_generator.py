@@ -1,6 +1,6 @@
 import hashlib
 import math
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import sys
 import json
 import os
@@ -18,9 +18,98 @@ def get_val(h, start, length, max_val):
         sub = (h * 2)[start:start+length]
     return int(sub, 16) % max_val
 
+def draw_random_ornament(h, draw, img_width, img_height):
+    # Pilih 1 dari 5 ornamen secara pseudo-random dari byte ke-40
+    ornament_type = get_val(h, 40, 1, 5)
+    
+    if ornament_type == 0:
+        # 1. Rasi Bintang Kriptografis
+        num_nodes = 15 + get_val(h, 41, 1, 15)
+        nodes = []
+        for i in range(num_nodes):
+            nx = get_val(h, (42 + i*2) % 60, 2, img_width)
+            ny = get_val(h, (43 + i*2) % 60, 2, img_height)
+            nodes.append((nx, ny))
+            draw.ellipse([nx-2, ny-2, nx+2, ny+2], fill=(255, 255, 255, 200))
+        for i in range(len(nodes)):
+            for j in range(i+1, len(nodes)):
+                dx = nodes[i][0] - nodes[j][0]
+                dy = nodes[i][1] - nodes[j][1]
+                dist = (dx**2 + dy**2)**0.5
+                if dist < 60:
+                    draw.line([nodes[i], nodes[j]], fill=(255, 255, 255, 100), width=1)
+                    
+    elif ornament_type == 1:
+        # 2. Jejak Papan Sirkuit Cyber/Neon
+        color = (0, 255, 200, 150) if get_val(h, 41, 1, 2) == 0 else (255, 0, 200, 150)
+        num_traces = 5 + get_val(h, 42, 1, 10)
+        for i in range(num_traces):
+            start_x = get_val(h, (43 + i*3) % 60, 2, img_width)
+            start_y = get_val(h, (44 + i*3) % 60, 2, img_height)
+            length1 = 20 + get_val(h, (45 + i*3) % 60, 2, 50)
+            length2 = 20 + get_val(h, (46 + i*3) % 60, 2, 50)
+            dir1 = get_val(h, (47 + i*3) % 60, 1, 4)
+            
+            mid_x, mid_y = start_x, start_y
+            if dir1 == 0: mid_x += length1
+            elif dir1 == 1: mid_x -= length1
+            elif dir1 == 2: mid_y += length1
+            else: mid_y -= length1
+                
+            end_x, end_y = mid_x, mid_y
+            if dir1 in [0, 1]:
+                end_y += length2 if get_val(h, 48, 1, 2) == 0 else -length2
+            else:
+                end_x += length2 if get_val(h, 48, 1, 2) == 0 else -length2
+                
+            draw.line([(start_x, start_y), (mid_x, mid_y), (end_x, end_y)], fill=color, width=2)
+            draw.ellipse([end_x-3, end_y-3, end_x+3, end_y+3], fill=color)
+
+    elif ornament_type == 2:
+        # 3. Debu Kosmik Fraktal
+        num_dust = 40 + get_val(h, 41, 2, 60)
+        for i in range(num_dust):
+            dx = get_val(h, (42 + i*2) % 60, 2, img_width)
+            dy = get_val(h, (43 + i*2) % 60, 2, img_height)
+            size = 2 + get_val(h, (44 + i) % 60, 1, 4)
+            shape_type = get_val(h, (45 + i) % 60, 1, 3)
+            color = (255, 215, 0, 150) if i % 2 == 0 else (0, 255, 255, 150)
+            
+            if shape_type == 0:
+                draw.polygon([(dx, dy-size), (dx+size, dy+size), (dx-size, dy+size)], fill=color)
+            elif shape_type == 1:
+                draw.line([(dx-size, dy), (dx+size, dy)], fill=color, width=1)
+                draw.line([(dx, dy-size), (dx, dy+size)], fill=color, width=1)
+            else:
+                draw.ellipse([dx-size//2, dy-size//2, dx+size//2, dy+size//2], fill=color)
+                
+    elif ornament_type == 3:
+        # 4. Cincin Orbit / Aura Halos
+        num_rings = 2 + get_val(h, 41, 1, 3)
+        cx, cy = img_width//2, img_height//2
+        base_radius = 50 + get_val(h, 42, 2, 100)
+        for i in range(num_rings):
+            r = base_radius + i * (30 + get_val(h, 43+i, 1, 20))
+            width = 1 if i % 2 == 0 else 2
+            color = (255, 255, 255, 60)
+            draw.ellipse([cx-r, cy-r, cx+r, cy+r], outline=color, width=width)
+            
+    elif ornament_type == 4:
+        # 5. Prasasti Hexadesimal Terselubung
+        try:
+            font = ImageFont.truetype("arial.ttf", 10)
+        except IOError:
+            font = ImageFont.load_default()
+        
+        hex_text = h[:16] + "\\n" + h[16:32] + "\\n" + h[32:48] + "\\n" + h[48:64]
+        color = (255, 255, 255, 40)
+        draw.text((10, 10), hex_text, font=font, fill=color)
+        draw.text((img_width - 110, img_height - 60), hex_text, font=font, fill=color)
+
 def draw_landscape(h, draw, img_width, img_height):
     bg_r, bg_g, bg_b = get_val(h, 2, 2, 256), get_val(h, 4, 2, 256), get_val(h, 6, 2, 256)
     draw.rectangle([0, 0, img_width, img_height], fill=(bg_r, bg_g, bg_b))
+    draw_random_ornament(h, draw, img_width, img_height)
     
     # Matahari
     sun_rad = 15 + get_val(h, 40, 2, 30)
@@ -74,6 +163,7 @@ def draw_face(h, draw, img_width, img_height):
     face_type = get_val(h, 2, 1, 5) # 0: Monyet, 1: Manusia, 2: Kucing, 3: Anjing, 4: Burung
     bg_r, bg_g, bg_b = get_val(h, 3, 2, 256), get_val(h, 5, 2, 256), get_val(h, 7, 2, 256)
     draw.rectangle([0, 0, img_width, img_height], fill=(bg_r, bg_g, bg_b))
+    draw_random_ornament(h, draw, img_width, img_height)
     
     cx, cy = img_width//2, img_height//2
     head_w = 120 + get_val(h, 9, 2, 60)
@@ -164,6 +254,7 @@ def draw_abstract_geometry(h, draw, img_width, img_height):
     # This is now Space / Galaxy Theme
     bg_r, bg_g, bg_b = get_val(h, 2, 2, 40), get_val(h, 4, 2, 40), get_val(h, 6, 2, 60)
     draw.rectangle([0, 0, img_width, img_height], fill=(bg_r, bg_g, bg_b)) # Deep space
+    draw_random_ornament(h, draw, img_width, img_height)
     
     # 1. Bintang (Stars)
     num_stars = 30 + get_val(h, 8, 2, 100)
@@ -208,6 +299,7 @@ def draw_abstract_geometry(h, draw, img_width, img_height):
 def draw_wave_line_art(h, draw, img_width, img_height):
     bg_r, bg_g, bg_b = get_val(h, 2, 2, 256), get_val(h, 4, 2, 256), get_val(h, 6, 2, 256)
     draw.rectangle([0, 0, img_width, img_height], fill=(bg_r, bg_g, bg_b))
+    draw_random_ornament(h, draw, img_width, img_height)
     
     num_lines = 15 + get_val(h, 8, 2, 40)
     freq1 = 1 + get_val(h, 10, 1, 6)
@@ -246,6 +338,7 @@ def draw_everyday_object(h, draw, img_width, img_height):
     obj_type = get_val(h, 2, 1, 4) # 0: Mobil, 1: Sepeda, 2: Sepatu, 3: Tas
     bg_r, bg_g, bg_b = get_val(h, 3, 2, 256), get_val(h, 5, 2, 256), get_val(h, 7, 2, 256)
     draw.rectangle([0, 0, img_width, img_height], fill=(bg_r, bg_g, bg_b))
+    draw_random_ornament(h, draw, img_width, img_height)
     
     cx, cy = img_width//2, img_height//2
     obj_r, obj_g, obj_b = get_val(h, 9, 2, 256), get_val(h, 11, 2, 256), get_val(h, 13, 2, 256)
@@ -356,7 +449,7 @@ def generate_universal(seed_string, output_filename=None):
     category = get_val(h, 0, 2, 5) 
     
     img_width, img_height = 300, 300
-    img = Image.new('RGB', (img_width, img_height), color='white')
+    img = Image.new('RGBA', (img_width, img_height), color=(255,255,255,255))
     draw = ImageDraw.Draw(img)
     
     cat_names = [
@@ -390,8 +483,7 @@ def generate_universal(seed_string, output_filename=None):
     coywin_name = bip_coywin.hash_to_name(h)
     
     if output_filename is None:
-        os.makedirs("output_images", exist_ok=True)
-        output_filename = os.path.join("output_images", f"{coywin_name}_{h[:8]}.png")
+        output_filename = f"{coywin_name}_{h[:8]}.png"
         
     img.save(output_filename)
     
