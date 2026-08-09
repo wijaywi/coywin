@@ -9,7 +9,7 @@ let isFirstLoad = true;
 
 async function fetchImages() {
     try {
-        const response = await fetch('/api/images');
+        const response = await fetch('images.json');
         const images = await response.json(); // Array of objects [{filename, name, hash}]
         
         document.getElementById('total-count').textContent = images.length;
