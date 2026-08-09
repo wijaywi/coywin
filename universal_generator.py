@@ -19,8 +19,8 @@ def get_val(h, start, length, max_val):
     return int(sub, 16) % max_val
 
 def draw_random_ornament(h, draw, img_width, img_height):
-    # Pilih 1 dari 5 ornamen secara pseudo-random dari byte ke-40
-    ornament_type = get_val(h, 40, 1, 5)
+    # Pilih 1 dari 4 ornamen secara pseudo-random dari byte ke-40
+    ornament_type = get_val(h, 40, 1, 4)
     
     if ornament_type == 0:
         # 1. Rasi Bintang Kriptografis
@@ -93,18 +93,6 @@ def draw_random_ornament(h, draw, img_width, img_height):
             width = 1 if i % 2 == 0 else 2
             color = (255, 255, 255, 60)
             draw.ellipse([cx-r, cy-r, cx+r, cy+r], outline=color, width=width)
-            
-    elif ornament_type == 4:
-        # 5. Prasasti Hexadesimal Terselubung
-        try:
-            font = ImageFont.truetype("arial.ttf", 10)
-        except IOError:
-            font = ImageFont.load_default()
-        
-        hex_text = h[:16] + "\\n" + h[16:32] + "\\n" + h[32:48] + "\\n" + h[48:64]
-        color = (255, 255, 255, 40)
-        draw.text((10, 10), hex_text, font=font, fill=color)
-        draw.text((img_width - 110, img_height - 60), hex_text, font=font, fill=color)
 
 def draw_landscape(h, draw, img_width, img_height):
     bg_r, bg_g, bg_b = get_val(h, 2, 2, 256), get_val(h, 4, 2, 256), get_val(h, 6, 2, 256)
