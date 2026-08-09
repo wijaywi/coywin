@@ -9,7 +9,7 @@ let isFirstLoad = true;
 
 async function fetchImages() {
     try {
-        const response = await fetch('images.json');
+        const response = await fetch('/api/images');
         const images = await response.json(); // Array of objects [{filename, name, hash}]
         
         document.getElementById('total-count').textContent = images.length;
@@ -53,7 +53,7 @@ async function fetchImages() {
                     </div>
                     ${imgData.pqc_secured ? `
                     <div class="miner-label" title="Miner ECDSA Public Address: ${imgData.miner_address}">
-                        Mined by: <strong>${imgData.miner_name}</strong>
+                        Miner Session ID : <strong>${imgData.miner_name}</strong>
                     </div>` : ''}
                 `;
                 
