@@ -53,7 +53,7 @@ async function fetchImages() {
                     </div>
                     ${imgData.pqc_secured ? `
                     <div class="miner-label" title="Miner ECDSA Public Address: ${imgData.miner_address}">
-                        Miner Session ID : <strong>${imgData.miner_name}</strong>
+                        Node Alias : <strong>${imgData.miner_name}</strong>
                     </div>` : ''}
                 `;
                 
