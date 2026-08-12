@@ -221,13 +221,19 @@ class CoywinDesktop(ctk.CTk):
             self.log_terminal(f"\n[FATAL] Executable node.exe not found at: {exe_path}\n")
             return
         
+        env = dict(os.environ)
+        env["PYTHONIOENCODING"] = "utf-8"
+
         self.node_process = subprocess.Popen(
             [exe_path],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT, 
             text=True,
-            bufsize=1
+            encoding="utf-8",
+            errors="replace",
+            bufsize=1,
+            env=env
         )
         
         thread = threading.Thread(target=self.read_node_output, daemon=True)
