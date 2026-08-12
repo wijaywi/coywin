@@ -150,7 +150,9 @@ class CoywinDesktop(ctk.CTk):
 
     def get_miner_key(self):
         import json
-        wallet_path = os.path.join("..", "coiwin-node-windows", "miner_wallet.json")
+        wallet_path = "miner_wallet.json"
+        if not os.path.exists(wallet_path):
+            wallet_path = os.path.join("..", "coiwin-node-windows", "miner_wallet.json")
         if os.path.exists(wallet_path):
             try:
                 with open(wallet_path, 'r') as f:
@@ -211,7 +213,10 @@ class CoywinDesktop(ctk.CTk):
             self.is_mining = False
 
     def start_node_bridge(self):
-        exe_path = os.path.join("..", "coiwin-node-windows", "node.exe")
+        exe_path = "node.exe"
+        if not os.path.exists(exe_path):
+            exe_path = os.path.join("..", "coiwin-node-windows", "node.exe")
+            
         if not os.path.exists(exe_path):
             self.log_terminal(f"\n[FATAL] Executable node.exe not found at: {exe_path}\n")
             return

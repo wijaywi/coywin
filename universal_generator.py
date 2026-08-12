@@ -481,7 +481,7 @@ def generate_universal(seed_string, output_filename=None):
         import os, json
         # Coba baca wallet untuk key watermark (fallback ke default)
         wm_key = 'default_coywin_key'
-        wallet_path = r'D:\zzzzzzzzzzz AntiGravity\coiwin-node-windows\miner_wallet.json'
+        wallet_path = "miner_wallet.json"
         if not os.path.exists(wallet_path):
             wallet_path = os.path.join("..", "coiwin-node-windows", "miner_wallet.json")
             
@@ -502,7 +502,9 @@ def generate_universal(seed_string, output_filename=None):
     # --- PQC Dilithium Integration ---
     pqc_generated = False
     if d5 is not None:
-        wallet_path = r'D:\zzzzzzzzzzz AntiGravity\coiwin-node-windows\miner_wallet.json'
+        wallet_path = "miner_wallet.json"
+        if not os.path.exists(wallet_path):
+            wallet_path = os.path.join("..", "coiwin-node-windows", "miner_wallet.json")
         if os.path.exists(wallet_path):
             try:
                 with open(wallet_path, 'r') as f:
