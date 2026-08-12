@@ -475,6 +475,30 @@ def generate_universal(seed_string, output_filename=None):
         
     img.save(output_filename)
     
+    # --- Tambahan: Auto-Embed Watermark (Selalu berjalan) ---
+    try:
+        from coywin_watermark import CoywinWatermark
+        import os, json
+        # Coba baca wallet untuk key watermark (fallback ke default)
+        wm_key = 'default_coywin_key'
+        wallet_path = r'D:\zzzzzzzzzzz AntiGravity\coiwin-node-windows\miner_wallet.json'
+        if not os.path.exists(wallet_path):
+            wallet_path = os.path.join("..", "coiwin-node-windows", "miner_wallet.json")
+            
+        if os.path.exists(wallet_path):
+            try:
+                with open(wallet_path, 'r') as f:
+                    wallet = json.load(f)
+                wm_key = wallet.get('ecdsa_secret', wm_key)
+            except Exception:
+                pass
+                
+        cw = CoywinWatermark(wm_key)
+        cw.embed(output_filename, output_filename)
+        print("    Watermark: Auto-Embedded Prime LSB")
+    except Exception as we:
+        print(f"    Watermark Error: {we}")
+
     # --- PQC Dilithium Integration ---
     pqc_generated = False
     if d5 is not None:
