@@ -213,6 +213,20 @@ class CoywinDesktop(ctk.CTk):
             self.is_mining = False
 
     def start_node_bridge(self):
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        user32 = ctypes.windll.user32
+        
+        # Allocate a hidden console so the child process inherits a UTF-8 console environment
+        # This prevents UnicodeEncodeError when the GUI is compiled with --noconsole
+        kernel32.AllocConsole()
+        hwnd = kernel32.GetConsoleWindow()
+        if hwnd:
+            user32.ShowWindow(hwnd, 0) # SW_HIDE
+            
+        kernel32.SetConsoleOutputCP(65001)
+        kernel32.SetConsoleCP(65001)
+
         exe_path = "node.exe"
         if not os.path.exists(exe_path):
             exe_path = os.path.join("..", "coiwin-node-windows", "node.exe")
@@ -223,7 +237,8 @@ class CoywinDesktop(ctk.CTk):
         
         env = dict(os.environ)
         env["PYTHONIOENCODING"] = "utf-8"
-
+        env["PYTHONUTF8"] = "1"
+        
         self.node_process = subprocess.Popen(
             [exe_path],
             stdin=subprocess.PIPE,
