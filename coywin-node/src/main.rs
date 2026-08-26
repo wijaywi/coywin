@@ -58,9 +58,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     
                     let _ = miner_tx.blocking_send(proposal);
                     
-                    // Reset for next block
-                    nonce = 0;
-                    std::thread::sleep(std::time::Duration::from_secs(10));
+                    // Halt mining for Genesis demonstration
+                    println!("[*] Genesis Block Mined! Halting mining engine...");
+                    break;
                 }
             }
             
