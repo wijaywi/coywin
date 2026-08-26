@@ -44,8 +44,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 hasher.update(&image.data);
                 let result = hasher.finalize();
 
-                // Check Network Difficulty (2 leading zero bytes = 0x0000)
-                if result[0] == 0 && result[1] == 0 {
+                // Check Network Difficulty (1 leading zero byte = 0x00)
+                if result[0] == 0 {
                     println!("\n[SUCCESS] PROOF OF STEGANOGRAPHIC WORK SOLVED!");
                     println!("[*] Nonce: {}", nonce);
                     println!("[*] Matrix Hash: {:x}{:x}{:x}{:x}...", result[0], result[1], result[2], result[3]);
