@@ -61,12 +61,12 @@ cargo run --release -p coywin-node
 ## ABSOLUTE DISCLAIMER OF WARRANTY & LIABILITY
 
 > [!CAUTION]
-> **READ CAREFULLY BEFORE EXECUTING THIS SOFTWARE.**
+> **_READ CAREFULLY BEFORE EXECUTING THIS SOFTWARE_.**
 >
-> Coywin V5 is experimental, highly intensive cryptographic software provided entirely **"AS IS"**, without warranty of any kind, express or implied. 
+> _Coywin V5 is experimental, highly intensive cryptographic software provided entirely **"AS IS"**, without warranty of any kind, express or implied_. 
 >
-> By compiling, running, or interacting with this source code, you acknowledge and accept absolute responsibility for any consequences. The author(s) and creator(s) of Coywin shall **NOT BE HELD LIABLE** for any claims, damages, or other liability arising from its use. 
+> _By compiling, running, or interacting with this source code, you acknowledge and accept absolute responsibility for any consequences. The author(s) and creator(s) of Coywin shall **NOT BE HELD LIABLE** for any claims, damages, or other liability arising from its use_. 
 >
-> This includes, but is not limited to: **Hardware damage or thermal degradation** (the software deliberately subjects CPUs to extreme and prolonged computational stress), **data loss**, **security breaches**, or **any direct or indirect financial losses**. 
+> _This includes, but is not limited to: **Hardware damage or thermal degradation** (the software deliberately subjects CPUs to extreme and prolonged computational stress), **data loss**, **security breaches**, or **any direct or indirect financial losses_**. 
 >
-> This project is a decentralized scientific and artistic experiment. It operates outside the bounds of traditional software guarantees. **Run it at your own absolute risk.**
+> _This project is a decentralized scientific and artistic experiment. It operates outside the bounds of traditional software guarantees. **Run it at your own absolute risk_.**
