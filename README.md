@@ -1,25 +1,26 @@
 # COYWIN V5
 
 <p align="center">
-  <img src="coywin_logo.png" alt="Coywin Logo" width="300"/>
+  <img src="coywin_logo.png" alt="Coywin Logo" width="200"/>
 </p>
 
 # THE COYWIN V5 MANIFESTO
 
-**C𐙚 I. WE REJECT THE CASINO**
+**🅲 I. WE REJECT THE CASINO**
 Every modern blockchain is a hyper-capitalist casino. Every token is a speculative disease. We do not buy, and we do not sell. Coywin V5 obliterates the marketplace. There are no liquidity pools, no fractional shares, and no fiat bridges. The private key is not a financial instrument; it is a mathematical artifact. If it changes hands, it changes hands as a Gift. 
 
-**C𐙚 II. WE REJECT THE EMPTY HASH**
+**🅲 II. WE REJECT THE EMPTY HASH**
 The world burns oceans of silicon to calculate meaningless, empty strings of zeros. We burn silicon to paint. Our network difficulty is not measured in abstract mathematical races, but in the deliberate, brutalist execution of a 1920x1080 visual matrix. We do not scale for speed. We do not rush for throughput. You will wait for the masterpiece to render, even if the node must grind for five years.
 
-**C𐙚 III. MAKE THIS EARTH NO HOTTER**
+**🅲 III. MAKE THIS EARTH NO HOTTER**
 We demand heavy computation, but we refuse to suffocate the globe. The 500ms thermal throttle is our absolute and unyielding law. The system will sleep. The transistors will cool. We throttle our own consensus engine to spare the atmosphere. Art requires sacrifice; the planet does not.
 
-**C𐙚 IV. NAMES, NOT NUMBERS**
+**🅲 IV. NAMES, NOT NUMBERS**
 Hexadecimal strings are for dead machines. We are the architects. The BIP-Coywin phonetic protocol rips the cryptographic DNA directly from the block hash and forces it to speak. Our blocks are not `0x9A4F2...` They are born with biological names.
 
-**C𐙚 V. STEGANOGRAPHY OVER TRANSPARENCY**
+**🅲 V. STEGANOGRAPHY OVER TRANSPARENCY**
 We hide our absolute truths in plain sight. The Dilithium5 post-quantum locks do not just secure the ledger; they physically mutate the geometry of the canvas. The cryptographic payloads do not sit idly on a public block; they are violently buried into the blue pixel channel of the art itself via AVX-512 steganography.
+
 
 *The network is the gallery. The block is the Art.*
 *-Coywin V5*
