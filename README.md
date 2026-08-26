@@ -1,5 +1,9 @@
 # COYWIN V5
 
+<p align="center">
+  <img src="coywin_logo.png" alt="Coywin Logo" width="300"/>
+</p>
+
 # THE COYWIN V5 MANIFESTO
 
 **C𐙚 I. WE REJECT THE CASINO**
