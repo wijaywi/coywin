@@ -57,3 +57,16 @@ cargo run --release -p coywin-node
 * The difficulty target is currently hardcoded to 2 leading zero bytes.
 * The PoSW loop forces a full 1920x1080 render for every nonce. This is heavily CPU-bound and has not been optimized for GPU execution.
 * The `coywin-node` libp2p implementation binds to `/ip4/0.0.0.0/tcp/0` and discovers peers exclusively via local mDNS. Wide-area networking with bootstrap nodes is not yet configured.
+
+## ABSOLUTE DISCLAIMER OF WARRANTY & LIABILITY
+
+> [!CAUTION]
+> **READ CAREFULLY BEFORE EXECUTING THIS SOFTWARE.**
+>
+> Coywin V5 is experimental, highly intensive cryptographic software provided entirely **"AS IS"**, without warranty of any kind, express or implied. 
+>
+> By compiling, running, or interacting with this source code, you acknowledge and accept absolute responsibility for any consequences. The author(s) and creator(s) of Coywin shall **NOT BE HELD LIABLE** for any claims, damages, or other liability arising from its use. 
+>
+> This includes, but is not limited to: **Hardware damage or thermal degradation** (the software deliberately subjects CPUs to extreme and prolonged computational stress), **data loss**, **security breaches**, or **any direct or indirect financial losses**. 
+>
+> This project is a decentralized scientific and artistic experiment. It operates outside the bounds of traditional software guarantees. **Run it at your own absolute risk.**
