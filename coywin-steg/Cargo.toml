@@ -1,0 +1,7 @@
+[package]
+name = "coywin-steg"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rayon = "1.8"

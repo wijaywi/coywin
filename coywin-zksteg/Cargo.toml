@@ -1,0 +1,11 @@
+[package]
+name = "coywin-zksteg"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+halo2_proofs = { version = "0.3.0", default-features = false }
+ff = "0.13"
+group = "0.13"
+num-bigint = "0.4"
+subtle = "2.4"

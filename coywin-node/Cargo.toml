@@ -1,0 +1,15 @@
+[package]
+name = "coywin-node"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+coywin-network = { path = "../coywin-network" }
+coywin-render = { path = "../coywin-render" }
+tokio = { version = "1.28", features = ["full"] }
+libp2p = { version = "0.52", features = ["tokio", "gossipsub", "mdns", "noise", "yamux", "tcp", "macros"] }
+futures = "0.3"
+image = "0.24"
+rand = "0.8"
+serde_json = "1.0"
+sha2 = "0.10"

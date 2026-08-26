@@ -1,0 +1,8 @@
+[package]
+name = "coywin-mempool"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+coywin-ledger = { path = "../coywin-ledger" }
+tokio = { version = "1.28", features = ["full"] }
