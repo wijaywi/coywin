@@ -1,3 +1,6 @@
+#[cfg(test)]
+mod tests {
+    use crate::{embed_payload_dispatch, ImageBuffer, PrimeGridSteg};
 
 #[test]
 fn test_scalar_fallback_steganography() {
@@ -24,4 +27,5 @@ fn test_scalar_fallback_steganography() {
     let extracted_bits = PrimeGridSteg::extract_payload(&image, &block_hash, payload_bits.len());
 
     assert_eq!(payload_bits, extracted_bits, "Extracted payload does not match the embedded payload! Steganography failed.");
+}
 }

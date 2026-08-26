@@ -18,7 +18,7 @@ impl Mempool {
     /// Adds a transaction to the mempool if it is cryptographically valid
     pub async fn add_transaction(&self, tx: GiftTransaction) -> Result<(), &'static str> {
         // We simulate a dry-run against the ledger state to ensure the signature is valid
-        if let Err(e) = self.ledger.apply_gift(&tx) {
+        if let Err(e) = self.ledger.validate_gift(&tx) {
             return Err(e);
         }
 

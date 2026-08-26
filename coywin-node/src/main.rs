@@ -32,9 +32,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         println!("[*] INITIALIZING MEMORY-HARD PoSW MINER...");
         println!("[*] Network Difficulty Target: 2 Leading Zeros (0x0000...)");
         
+        
         loop {
-            block_hash[0] = (nonce % 256) as u8;
+            // Commit to block properly
+            let mut commitment_hasher = Sha256::new();
+            commitment_hasher.update(&nonce.to_le_bytes());
+            block_hash.copy_from_slice(&commitment_hasher.finalize());
             signature[24] = (nonce % 256) as u8;
+
 
             // Violently re-render the matrix for every nonce at FULL 1920x1080 resolution
             // If it takes 5 years to mine a block, so be it. This is Mona Lisa art.
@@ -139,8 +144,25 @@ async fn main() -> Result<(), Box<dyn Error>> {
                     libp2p::gossipsub::Event::Message { propagation_source: peer_id, message_id: _id, message } => {
                         println!("[Gossip] Received block proposal from peer: {}", peer_id);
                         if let Ok(proposal) = serde_json::from_slice::<BlockProposed>(&message.data) {
+                            
                             println!("[*] Block hash authenticated. Offloading to AVX-512 render pipeline...");
                             
+                            // Cheap structural validation
+                            if proposal.signature.len() != 4627 {
+                                println!("[!] Invalid signature length. Dropping.");
+                                continue;
+                            }
+
+                            // Cryptographic validation of commitment
+                            use sha2::{Sha256, Digest};
+                            let mut commitment_hasher = Sha256::new();
+                            commitment_hasher.update(&proposal.nonce.to_le_bytes());
+                            let expected_hash = commitment_hasher.finalize();
+                            if proposal.hash != expected_hash.as_slice() {
+                                println!("[!] Invalid block commitment. Dropping.");
+                                continue;
+                            }
+
                             // Offload to standard thread pool so we don't block the async runtime with heavy CPU work
                             let hash_clone = proposal.hash;
                             let sig_clone = proposal.signature.clone();
@@ -150,13 +172,22 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 let height = 1080;
                                 match execute_full_pipeline(hash_clone, &sig_clone, width, height, nonce_clone) {
                                     Ok(image_buffer) => {
+                                        // PoSW verification BEFORE persisting!
+                                        let mut hasher = Sha256::new();
+                                        hasher.update(&image_buffer.data);
+                                        let result = hasher.finalize();
+                                        if result[0] != 0x00 || result[1] != 0xA9 {
+                                            println!("[!] PoSW Verification Failed! Dropping invalid block.");
+                                            return;
+                                        }
+
                                         let phonetic_name = coywin_render::generate_bip_coywin_name(&hash_clone);
                                         
                                         // Buat folder output_images jika belum ada
-                                        let out_dir = std::path::Path::new("..\\output_images");
+                                        let out_dir = std::path::Path::new("..\\\\output_images");
                                         let _ = std::fs::create_dir_all(out_dir);
                                         
-                                        let output_filename = format!("..\\output_images\\{}.png", phonetic_name);
+                                        let output_filename = format!("..\\\\output_images\\\\{}.png", phonetic_name);
                                         let output_path = std::path::Path::new(&output_filename);
                                         
                                         let file = std::fs::File::create(output_path).unwrap();

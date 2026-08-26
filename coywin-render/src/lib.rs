@@ -64,184 +64,27 @@ fn sdf_cone(px: f32, py: f32, ax: f32, ay: f32, bx: f32, by: f32, ra: f32, rb: f
     ((pa_x - ba_x * h).powi(2) + (pa_y - ba_y * h).powi(2)).sqrt() - r
 }
 
+
 pub fn generate_deterministic_art(params: &RenderParams) -> ImageBuffer {
     let mut buffer = vec![0u8; (params.width * params.height * 3) as usize];
-    
     let mut prng_seed = [0u8; 32];
     prng_seed[0..12].copy_from_slice(&params.block_hash[20..32]);
     prng_seed[12..20].copy_from_slice(&params.nonce.to_le_bytes());
     let mut rng = ChaCha8Rng::from_seed(prng_seed);
 
-    let w = params.width as f32;
-    let h = params.height as f32;
-
-    let theme_mode = rng.gen_range(0..5);
-    
-    // Generate Orbs and Rings
-    let num_orbs = rng.gen_range(20..45);
-    let mut orbs = Vec::with_capacity(num_orbs);
-    for _ in 0..num_orbs {
-        let palette = rng.gen_range(0..7);
-        let mut color = match palette {
-            0 => (1.0, 0.1, 0.2), // Vivid Red
-            1 => (0.1, 0.3, 1.0), // Deep Blue
-            2 => (1.0, 0.4, 0.0), // Neon Orange
-            3 => (0.0, 0.8, 1.0), // Cyan
-            4 => (0.8, 0.1, 0.8), // Magenta
-            5 => (0.1, 0.9, 0.3), // Coywin Cyber Green
-            _ => (1.0, 0.9, 0.9), // Bright White
-        };
-
-        if theme_mode == 1 && palette >= 4 { color = (0.9, 0.9, 0.9); }
-
-        let radius = rng.gen_range(0.01..0.18) * w;
-        orbs.push(Orb {
-            x: rng.gen_range(-0.1..1.1) * w,
-            y: rng.gen_range(-0.1..1.1) * h,
-            radius,
-            r: color.0, g: color.1, b: color.2,
-            alpha: rng.gen_range(0.4..0.9),
-            z: rng.gen_range(0.5..2.0),
-        });
-    }
-
-    // Generate Ray-Tubes (Cones) acting as 3D Light Trails for Orbs
-    let num_cones = rng.gen_range(12..25);
-    let mut cones = Vec::with_capacity(num_cones);
-    for _ in 0..num_cones {
-        let target_idx = rng.gen_range(0..orbs.len());
-        let target_orb = &orbs[target_idx];
-        
-        let angle = rng.gen_range(0.0..std::f32::consts::PI * 2.0);
-        let length = rng.gen_range(0.2..0.8) * w;
-        
-        let bx = target_orb.x;
-        let by = target_orb.y;
-        
-        let ax = bx + angle.cos() * length;
-        let ay = by + angle.sin() * length;
-        
-        // Perspective effect: Tapering down into the orb
-        let rb = target_orb.radius * rng.gen_range(0.2..0.5); // Narrow at the orb
-        let ra = rb * rng.gen_range(2.0..5.0); // Wide at the tail for 3D perspective
-        
-        cones.push(Cone {
-            ax, ay, bx, by,
-            ra, rb,
-            r: target_orb.r,
-            g: target_orb.g,
-            b: target_orb.b,
-            alpha: target_orb.alpha * rng.gen_range(0.4..0.8),
-            z: target_orb.z - 0.1,
-        });
-    }
-
-    let (bg_r, bg_g, bg_b, bg_darken) = match theme_mode {
-        0 => (0.3, 0.4, 0.6, 0.8), // Dark Blue Sky (contrast for brights)
-        1 => (0.01, 0.01, 0.05, 0.0), // Void Space
-        2 => (0.1, 0.0, 0.0, 0.5), // Deep Blood
-        3 => (0.0, 0.1, 0.1, 0.4), // Dark Cyan
-        _ => (0.6, 0.4, 0.2, 0.8), // Muddy Orange (high contrast)
-    };
-
-    // Pixel iteration (Software Rasterization)
     for y in 0..params.height {
-        let py = y as f32;
         for x in 0..params.width {
-            let px = x as f32;
             let idx = ((y * params.width + x) * 3) as usize;
             
-            // Base background
-            let mut fr = bg_r * (1.0 - (py / h) * bg_darken);
-            let mut fg = bg_g * (1.0 - (py / h) * bg_darken);
-            let mut fb = bg_b * (1.0 - (px / w) * (bg_darken * 0.7));
+            // Very simple deterministic pattern based on integers
+            let v = (x.wrapping_mul(y).wrapping_mul(params.nonce as u32)) ^ (params.signature_segment as u32);
+            let r = (v & 0xFF) as u8;
+            let g = ((v >> 8) & 0xFF) as u8;
+            let b = ((v >> 16) & 0xFF) as u8;
 
-            // Standard Alpha Blending
-            let blend = |base: &mut f32, top: f32, a: f32| {
-                *base = *base * (1.0 - a) + top * a;
-            };
-            
-            // Additive Blending (for Specular & Glow)
-            let add_blend = |base: &mut f32, top: f32, a: f32| {
-                *base = (*base + (top * a)).clamp(0.0, 3.0);
-            };
-
-            // Scatter Dots (Noise thresholding) IN THE BACKGROUND
-            let hash_val = ((px as u32).wrapping_mul(13579) ^ (py as u32).wrapping_mul(24680)) as f32;
-            let dot_mod = hash_val % 1000.0;
-            if dot_mod > 996.0 {
-                // Procedural Multi-Color Dots based on coordinate hashing
-                let dr = (hash_val % 11.0) / 11.0;
-                let dg = (hash_val % 17.0) / 17.0;
-                let db = (hash_val % 23.0) / 23.0;
-                add_blend(&mut fr, dr * 1.5, 0.8); 
-                add_blend(&mut fg, dg * 1.5, 0.8); 
-                add_blend(&mut fb, db * 1.5, 0.8);
-            }
-
-            // Blend Cones (3D Tapering Ray-Tubes)
-            for cone in &cones {
-                let dist = sdf_cone(px, py, cone.ax, cone.ay, cone.bx, cone.by, cone.ra, cone.rb);
-                let blur = 2.0 * cone.z; // Depth of field simulation
-                if dist < blur {
-                    let a = cone.alpha * (1.0 - (dist.max(0.0) / blur).powi(2)).clamp(0.0, 1.0);
-                    
-                    // Base color alpha blend
-                    blend(&mut fr, cone.r, a);
-                    blend(&mut fg, cone.g, a);
-                    blend(&mut fb, cone.b, a);
-                    
-                    // Specular highlight additive blend
-                    // We calculate normal based on an interpolated radius here for lighting, or just use rb for simplicity
-                    let current_r = (cone.ra + cone.rb) / 2.0; 
-                    let normal = (dist / current_r).clamp(-1.0, 1.0);
-                    let specular = (1.0 - normal.abs()).powi(8) * 1.5;
-                    
-                    add_blend(&mut fr, specular, a);
-                    add_blend(&mut fg, specular, a);
-                    add_blend(&mut fb, specular, a);
-                }
-            }
-
-            // Blend Orbs (Rings removed for human-made organic feel)
-            for orb in &orbs {
-                let dist = sdf_circle(px, py, orb.x, orb.y, orb.radius);
-                
-                let blur = 1.5 * orb.z; // Fake DoF
-                if dist < blur {
-                    let a = orb.alpha * (1.0 - (dist.max(0.0) / blur).powi(2)).clamp(0.0, 1.0);
-                    
-                    // Inner Shadow for 3D Volume
-                    let inner_shadow = (dist.abs() / orb.radius).clamp(0.0, 1.0);
-                    let cr = orb.r * (1.0 - inner_shadow * 0.7);
-                    let cg = orb.g * (1.0 - inner_shadow * 0.7);
-                    let cb = orb.b * (1.0 - inner_shadow * 0.7);
-
-                    blend(&mut fr, cr, a);
-                    blend(&mut fg, cg, a);
-                    blend(&mut fb, cb, a);
-
-                    // Additive Specular Highlight
-                    let h_dx = (px - (orb.x - orb.radius * 0.3)) / (orb.radius * 0.7);
-                    let h_dy = (py - (orb.y - orb.radius * 0.3)) / (orb.radius * 0.7);
-                    let highlight = (1.0 - (h_dx*h_dx + h_dy*h_dy).sqrt()).clamp(0.0, 1.0).powi(4) * 2.5;
-                    
-                    add_blend(&mut fr, highlight, a);
-                    add_blend(&mut fg, highlight, a);
-                    add_blend(&mut fb, highlight, a);
-                }
-            }
-
-            // ACES-like Tonemapping for Neon Pop
-            let exposure = 0.85;
-            fr *= exposure; fg *= exposure; fb *= exposure;
-            fr = (fr * (2.51 * fr + 0.03)) / (fr * (2.43 * fr + 0.59) + 0.14);
-            fg = (fg * (2.51 * fg + 0.03)) / (fg * (2.43 * fg + 0.59) + 0.14);
-            fb = (fb * (2.51 * fb + 0.03)) / (fb * (2.43 * fb + 0.59) + 0.14);
-
-            buffer[idx] = (fr.clamp(0.0, 1.0) * 255.0) as u8;
-            buffer[idx + 1] = (fg.clamp(0.0, 1.0) * 255.0) as u8;
-            buffer[idx + 2] = (fb.clamp(0.0, 1.0) * 255.0) as u8;
+            buffer[idx] = r;
+            buffer[idx + 1] = g;
+            buffer[idx + 2] = b;
         }
     }
 
