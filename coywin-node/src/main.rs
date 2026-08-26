@@ -44,8 +44,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 hasher.update(&image.data);
                 let result = hasher.finalize();
 
-                // Check Network Difficulty (1 leading zero byte = 0x00)
-                if result[0] == 0 {
+                // Check Network Difficulty (Specific pattern 00a9)
+                if result[0] == 0x00 && result[1] == 0xA9 {
                     println!("\n[SUCCESS] PROOF OF STEGANOGRAPHIC WORK SOLVED!");
                     println!("[*] Nonce: {}", nonce);
                     println!("[*] Matrix Hash: {:x}{:x}{:x}{:x}...", result[0], result[1], result[2], result[3]);
@@ -85,8 +85,34 @@ async fn main() -> Result<(), Box<dyn Error>> {
         tokio::select! {
             Some(proposal) = miner_rx.recv() => {
                 let serialized = serde_json::to_vec(&proposal).unwrap();
+                
+                // Save it locally first!
+                println!("[*] Genesis Block found locally! Saving to disk before gossiping...");
+                let hash_clone = proposal.hash;
+                let sig_clone = proposal.signature.clone();
+                let nonce_clone = proposal.nonce;
+                tokio::task::spawn_blocking(move || {
+                    if let Ok(image_buffer) = coywin_render::execute_full_pipeline(hash_clone, &sig_clone, 1920, 1080, nonce_clone) {
+                        let phonetic_name = coywin_render::generate_bip_coywin_name(&hash_clone);
+                        
+                        // Buat folder output_images jika belum ada
+                        let out_dir = std::path::Path::new("..\\output_images");
+                        let _ = std::fs::create_dir_all(out_dir);
+                        
+                        let output_filename = format!("..\\output_images\\{}.png", phonetic_name);
+                        let output_path = std::path::Path::new(&output_filename);
+                        
+                        if let Ok(file) = std::fs::File::create(output_path) {
+                            let mut w = std::io::BufWriter::new(file);
+                            let encoder = image::codecs::png::PngEncoder::new(&mut w);
+                            let _ = encoder.write_image(&image_buffer.data, image_buffer.width, image_buffer.height, image::ColorType::Rgb8);
+                            println!("[SUCCESS] Saved local Genesis Block: {:?}", output_path);
+                        }
+                    }
+                });
+
                 if let Err(e) = swarm.behaviour_mut().gossipsub.publish(topic.clone(), serialized) {
-                    println!("[!] Failed to gossip block proposal: {:?}", e);
+                    println!("[!] Failed to gossip block proposal (You are alone in the universe): {:?}", e);
                 } else {
                     println!("[+] Gossiped solved block across the libp2p swarm!");
                 }
@@ -125,10 +151,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
                                 match execute_full_pipeline(hash_clone, &sig_clone, width, height, nonce_clone) {
                                     Ok(image_buffer) => {
                                         let phonetic_name = coywin_render::generate_bip_coywin_name(&hash_clone);
-                                        let output_filename = format!("{}.png", phonetic_name);
-                                        let output_path = Path::new(&output_filename);
-                                        let file = File::create(output_path).unwrap();
-                                        let mut w = BufWriter::new(file);
+                                        
+                                        // Buat folder output_images jika belum ada
+                                        let out_dir = std::path::Path::new("..\\output_images");
+                                        let _ = std::fs::create_dir_all(out_dir);
+                                        
+                                        let output_filename = format!("..\\output_images\\{}.png", phonetic_name);
+                                        let output_path = std::path::Path::new(&output_filename);
+                                        
+                                        let file = std::fs::File::create(output_path).unwrap();
+                                        let mut w = std::io::BufWriter::new(file);
                                         let encoder = image::codecs::png::PngEncoder::new(&mut w);
                                         encoder.write_image(
                                             &image_buffer.data,
