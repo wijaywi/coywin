@@ -1,72 +1,56 @@
-# COYWIN V5
+# Coywin Generative Node & Block API
 
-<p align="center">
-  <img src="coywin_logo.png" alt="Coywin Logo" width="300"/>
-</p>
+Coywin is a high-performance Rust node engine combining ML-DSA-87 (Dilithium5) post-quantum signatures with a deterministic vector rasterizer to produce generative visual artwork blocks.
 
-# THE COYWIN V5 MANIFESTO
-
-**C𐙚 I. WE REJECT THE CASINO**
-Every modern blockchain is a hyper-capitalist casino. Every token is a speculative disease. We do not buy, and we do not sell. Coywin V5 obliterates the marketplace. There are no liquidity pools, no fractional shares, and no fiat bridges. The private key is not a financial instrument; it is a mathematical artifact. If it changes hands, it changes hands as a Gift. 
-
-**C𐙚 II. WE REJECT THE EMPTY HASH**
-The world burns oceans of silicon to calculate meaningless, empty strings of zeros. We burn silicon to paint. Our network difficulty is not measured in abstract mathematical races, but in the deliberate, brutalist execution of a 1920x1080 visual matrix. We do not scale for speed. We do not rush for throughput. You will wait for the masterpiece to render, even if the node must grind for five years.
-
-**C𐙚 III. MAKE THIS EARTH NO HOTTER**
-We demand heavy computation, but we refuse to suffocate the globe. The 500ms thermal throttle is our absolute and unyielding law. The system will sleep. The transistors will cool. We throttle our own consensus engine to spare the atmosphere. Art requires sacrifice; the planet does not.
-
-**C𐙚 IV. NAMES, NOT NUMBERS**
-Hexadecimal strings are for dead machines. We are the architects. The BIP-Coywin phonetic protocol rips the cryptographic DNA directly from the block hash and forces it to speak. Our blocks are not `0x9A4F2...` They are born with biological names.
-
-**C𐙚 V. STEGANOGRAPHY OVER TRANSPARENCY**
-We hide our absolute truths in plain sight. The Dilithium5 post-quantum locks do not just secure the ledger; they physically mutate the geometry of the canvas. The cryptographic payloads do not sit idly on a public block; they are violently buried into the blue pixel channel of the art itself via AVX-512 steganography.
-
-*The network is the gallery. The block is the Art.*
-*-Coywin V5*
-
----
-
-Coywin is a Rust-based node software that combines Dilithium5 post-quantum signatures with a deterministic visual rasterizer to execute a Proof of Steganographic Work (PoSW) consensus loop.
+Designed for modern cloud deployments (Railway, VPS, Docker) as an asynchronous HTTP REST API and decentralized peer service without cryptocurrency mining loops.
 
 ## Architecture
 
-The workspace is divided into four main crates:
+The engine workspace consists of modular crates:
 
-* `coywin-node`: The async networking daemon and mining loop. Uses `tokio` and `libp2p` (mDNS, Gossipsub).
-* `coywin-ledger`: Validates transactions using `pqcrypto_dilithium::dilithium5` and stores state in a local `sled` database.
-* `coywin-render`: A deterministic 2.5D software rasterizer that generates 1920x1080 visual representations of the cryptographic state.
-* `coywin-steg`: An AVX-512 optimized LSB steganography engine that embeds data into the rendered matrix.
+* `coywin-node`: The async HTTP REST API service and P2P gossipsub engine powered by `tokio`, `axum`, and `libp2p`.
+* `coywin-render`: A deterministic 2.5D software rasterizer producing 1920x1080 visual representations of cryptographic block states.
+* `coywin-steg`: Prime-grid LSB steganography engine embedding data payloads with AVX2/AVX-512 acceleration.
+* `coywin-ledger`: Validates gift transactions with `pqcrypto-dilithium` and manages state persistence with `sled`.
 
-## Current Implementation Details
+## Railway Deployment & HTTP Endpoints
 
-* **Signatures**: The system requires a 2592-byte public key and a 4627-byte signature. It explicitly uses `pqcrypto_traits::sign::DetachedSignature` for verification.
-* **Consensus**: The node mines by repeatedly passing a mutated `nonce` to `coywin-render`. The rasterizer renders a 1920x1080 pixel buffer. The node computes the SHA-256 hash of this buffer and checks if the first two bytes are `0x00` (`result[0] == 0 && result[1] == 0`). 
-* **Rendering Engine**: Graphics are generated via software SDF (Signed Distance Field) functions (`sdf_circle`, `sdf_cone`). Color palettes (including the specific `0.1, 0.9, 0.3` green) and geometry placement are seeded by a `ChaCha20Rng` derived from the block hash.
+The node listens on `0.0.0.0:$PORT` (defaults to port 8080) and exposes the following REST API endpoints:
 
-## Building and Running
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/` | Web dashboard & live block viewer |
+| `GET` | `/health` | Service health status |
+| `GET` | `/node/info` | Node metrics, peer counts, and protocol info |
+| `GET` | `/block/latest` | Latest generated block in JSON format |
+| `GET` | `/block/:id` | Lookup block by height, hash, or phonetic name |
+| `POST` | `/block/generate` | On-demand deterministic block synthesis |
+| `GET` | `/api/images` | JSON gallery feed of rendered matrix images |
+| `GET` | `/output_images/*` | Static file server for rendered block PNGs |
 
-The project requires a Rust toolchain. For optimal rendering and steganography performance, a CPU with AVX-512 or AVX2 support is recommended.
+### Example Block Output (`GET /block/latest`)
+
+```json
+{
+  "height": 1,
+  "hash": "a4f89d3c872e01b4c9e82103f6d7a2b5...",
+  "phonetic_name": "Fihekilfong",
+  "timestamp": 1788231234,
+  "nonce": 42,
+  "generator": "coywin-deterministic-api-engine",
+  "pqc_secured": true,
+  "image_path": "output_images/Fihekilfong_a4f89d3c.png",
+  "image_url": "/output_images/Fihekilfong_a4f89d3c.png",
+  "matrix_width": 1920,
+  "matrix_height": 1080,
+  "summary": "Generative block produced via API request."
+}
+```
+
+## Running Locally
 
 ```bash
-cargo build --release
 cargo run --release -p coywin-node
 ```
 
-## Known Limitations
-
-* The difficulty target is currently hardcoded to 2 leading zero bytes.
-* The PoSW loop forces a full 1920x1080 render for every nonce. This is heavily CPU-bound and has not been optimized for GPU execution.
-* The `coywin-node` libp2p implementation binds to `/ip4/0.0.0.0/tcp/0` and discovers peers exclusively via local mDNS. Wide-area networking with bootstrap nodes is not yet configured.
-
-## ABSOLUTE DISCLAIMER OF WARRANTY & LIABILITY
-
-> [!CAUTION]
-> **READ CAREFULLY BEFORE EXECUTING THIS SOFTWARE.**
->
-> Coywin V5 is experimental, highly intensive cryptographic software provided entirely **"AS IS"**, without warranty of any kind, express or implied. 
->
-> By compiling, running, or interacting with this source code, you acknowledge and accept absolute responsibility for any consequences. The author(s) and creator(s) of Coywin shall **NOT BE HELD LIABLE** for any claims, damages, or other liability arising from its use. 
->
-> This includes, but is not limited to: **Hardware damage or thermal degradation** (the software deliberately subjects CPUs to extreme and prolonged computational stress), **data loss**, **security breaches**, or **any direct or indirect financial losses**. 
->
-> This project is a decentralized scientific and artistic experiment. It operates outside the bounds of traditional software guarantees. **Run it at your own absolute risk.**
+Visit `http://localhost:8080` in your web browser.
