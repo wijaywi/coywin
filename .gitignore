@@ -1,2 +1,7 @@
 /target
 /output_images
+*wallet*.json
+*.key
+*.pem
+*.priv
+*.pqc
