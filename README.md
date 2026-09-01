@@ -1,8 +1,18 @@
+---
+title: Coywin Generative Node
+emoji: 🦀
+colorFrom: indigo
+colorTo: green
+sdk: docker
+app_port: 8080
+pinned: false
+---
+
 # Coywin Generative Node & Block API
 
 Coywin is a high-performance Rust node engine combining ML-DSA-87 (Dilithium5) post-quantum signatures with a deterministic vector rasterizer to produce generative visual artwork blocks.
 
-Designed for modern cloud deployments (Railway, VPS, Docker) as an asynchronous HTTP REST API and decentralized peer service without cryptocurrency mining loops.
+Designed for modern cloud deployments (Hugging Face Spaces, Railway, Render, VPS) as an asynchronous HTTP REST API and decentralized peer service without cryptocurrency mining loops.
 
 ## Architecture
 
@@ -13,9 +23,9 @@ The engine workspace consists of modular crates:
 * `coywin-steg`: Prime-grid LSB steganography engine embedding data payloads with AVX2/AVX-512 acceleration.
 * `coywin-ledger`: Validates gift transactions with `pqcrypto-dilithium` and manages state persistence with `sled`.
 
-## Railway Deployment & HTTP Endpoints
+## HTTP API Endpoints
 
-The node listens on `0.0.0.0:$PORT` (defaults to port 8080) and exposes the following REST API endpoints:
+The node listens on port `8080` and exposes the following REST API endpoints:
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
