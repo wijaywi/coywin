@@ -4,8 +4,15 @@ import json
 import numpy as np
 from PIL import Image, ImageDraw
 import gradio as gr
-from fastapi import FastAPI, Request
+from fastapi import Request
 from fastapi.responses import JSONResponse
+
+try:
+    import spaces
+    GPU_DECORATOR = spaces.GPU
+except Exception:
+    def GPU_DECORATOR(func):
+        return func
 
 SYLLABLES = [
     "ka", "ru", "ma", "ti", "vo", "la", "ne", "pi", "ro", "su",
@@ -24,6 +31,7 @@ def generate_phonetic_name(hash_bytes):
 
 blocks_history = []
 
+@GPU_DECORATOR
 def generate_coywin_block(tag="Web Synthesis", custom_seed=None, width=1280, height=720):
     global blocks_history
     now_ts = int(time.time())
@@ -92,45 +100,8 @@ def generate_coywin_block(tag="Web Synthesis", custom_seed=None, width=1280, hei
     blocks_history.append(block_data)
     return img, json.dumps(block_data, indent=2)
 
-# Generate initial block
-initial_img, initial_json = generate_coywin_block("Genesis Cloud Node")
-
-# FastAPI App for REST API Endpoints
-api_app = FastAPI()
-
-@api_app.get("/health")
-def api_health():
-    return {"status": "ok", "service": "coywin-node", "total_blocks": len(blocks_history)}
-
-@api_app.get("/node/info")
-def api_node_info():
-    return {
-        "service_name": "Coywin Generative Node & Block API",
-        "protocol_version": "2.0.0",
-        "compliance": "100% Compliant Cloud API Service",
-        "total_blocks": len(blocks_history)
-    }
-
-@api_app.get("/block/latest")
-def api_block_latest():
-    if blocks_history:
-        return blocks_history[-1]
-    return JSONResponse(status_code=404, content={"error": "No blocks"})
-
-@api_app.post("/block/generate")
-async def api_block_generate(request: Request):
-    try:
-        body = await request.json()
-        tag = body.get("tag", "API Request Block")
-        seed = body.get("custom_seed", None)
-    except Exception:
-        tag = "API Request Block"
-        seed = None
-    _, block_json_str = generate_coywin_block(tag, seed)
-    return json.loads(block_json_str)
-
 # Gradio Web UI
-with gr.Blocks(title="Coywin Generative Node", theme=gr.themes.Soft()) as demo:
+with gr.Blocks(title="Coywin Generative Node") as demo:
     gr.Markdown("# 🦀 Coywin Generative Node & Block API")
     gr.Markdown("100% Cloud-Compliant Vector Artwork Generator & Blockchain Block API.")
     
@@ -142,8 +113,8 @@ with gr.Blocks(title="Coywin Generative Node", theme=gr.themes.Soft()) as demo:
             gr.Markdown("### REST API Endpoints\n- `GET /health`\n- `GET /node/info`\n- `GET /block/latest`\n- `POST /block/generate`")
         
         with gr.Column(scale=2):
-            output_image = gr.Image(value=initial_img, label="Rendered Matrix Art", type="pil")
-            output_json = gr.Code(value=initial_json, language="json", label="Block Data (JSON)")
+            output_image = gr.Image(label="Rendered Matrix Art", type="pil")
+            output_json = gr.Code(language="json", label="Block Data (JSON)")
 
     gen_btn.click(
         fn=generate_coywin_block,
@@ -151,8 +122,37 @@ with gr.Blocks(title="Coywin Generative Node", theme=gr.themes.Soft()) as demo:
         outputs=[output_image, output_json]
     )
 
-app = gr.mount_gradio_app(api_app, demo, path="/")
+# Mount REST API Endpoints on Gradio FastAPI instance
+@demo.app.get("/health")
+def api_health():
+    return {"status": "ok", "service": "coywin-node", "total_blocks": len(blocks_history)}
+
+@demo.app.get("/node/info")
+def api_node_info():
+    return {
+        "service_name": "Coywin Generative Node & Block API",
+        "protocol_version": "2.0.0",
+        "compliance": "100% Compliant Cloud API Service",
+        "total_blocks": len(blocks_history)
+    }
+
+@demo.app.get("/block/latest")
+def api_block_latest():
+    if blocks_history:
+        return blocks_history[-1]
+    return JSONResponse(status_code=404, content={"error": "No blocks"})
+
+@demo.app.post("/block/generate")
+async def api_block_generate(request: Request):
+    try:
+        body = await request.json()
+        tag = body.get("tag", "API Request Block")
+        seed = body.get("custom_seed", None)
+    except Exception:
+        tag = "API Request Block"
+        seed = None
+    _, block_json_str = generate_coywin_block(tag, seed)
+    return json.loads(block_json_str)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=7860)
+    demo.launch()
