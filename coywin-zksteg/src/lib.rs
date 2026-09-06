@@ -238,3 +238,55 @@ impl<F: PrimeField> Circuit<F> for ZkStegCircuit<F> {
         Ok(())
     }
 }
+
+use halo2_proofs::plonk::{create_proof, keygen_pk, keygen_vk, verify_proof, ProvingKey, VerifyingKey, VerificationStrategy, SingleVerifier};
+use halo2_proofs::poly::commitment::Params;
+use halo2_proofs::transcript::{Blake2bRead, Blake2bWrite, TranscriptRead, TranscriptWrite, Challenge255};
+use pasta_curves::{pallas, vesta, EqAffine, Fp};
+use rand::rngs::OsRng;
+
+pub fn generate_params(k: u32) -> Params<vesta::Affine> {
+    Params::<vesta::Affine>::new(k)
+}
+
+pub fn generate_keys(params: &Params<vesta::Affine>, circuit: &ZkStegCircuit<Fp>) -> (ProvingKey<vesta::Affine>, VerifyingKey<vesta::Affine>) {
+    let vk = keygen_vk(params, &circuit.without_witnesses()).expect("vk generation should not fail");
+    let pk = keygen_pk(params, vk.clone(), circuit).expect("pk generation should not fail");
+    (pk, vk)
+}
+
+pub fn create_steg_proof(
+    params: &Params<vesta::Affine>,
+    pk: &ProvingKey<vesta::Affine>,
+    circuit: ZkStegCircuit<Fp>,
+    public_instances: &[&[Fp]],
+) -> Vec<u8> {
+    let mut transcript = Blake2bWrite::<_, vesta::Affine, Challenge255<_>>::init(vec![]);
+    create_proof(
+        params,
+        pk,
+        &[circuit],
+        &[public_instances],
+        OsRng,
+        &mut transcript,
+    ).expect("proof generation should not fail");
+    transcript.finalize()
+}
+
+pub fn verify_steg_proof(
+    params: &Params<vesta::Affine>,
+    vk: &VerifyingKey<vesta::Affine>,
+    proof: &[u8],
+    public_instances: &[&[Fp]],
+) -> bool {
+    let strategy = SingleVerifier::new(params);
+    let mut transcript = Blake2bRead::<_, _, Challenge255<_>>::init(proof);
+    verify_proof(
+        params,
+        vk,
+        strategy,
+        &[public_instances],
+        &mut transcript,
+    ).is_ok()
+}
+

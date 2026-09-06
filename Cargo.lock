@@ -568,6 +568,8 @@ dependencies = [
  "group",
  "halo2_proofs",
  "num-bigint",
+ "pasta_curves",
+ "rand",
  "subtle",
 ]
 
