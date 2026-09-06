@@ -6,7 +6,7 @@ use axum::{
     Router,
 };
 use coywin_network::{build_swarm, BlockProposed, CoywinBehaviourEvent};
-use coywin_render::{execute_full_pipeline, generate_bip_coywin_name};
+use coywin_render::{execute_full_pipeline, generate_bip_coywin_name, verify_posw};
 use futures::StreamExt;
 use libp2p::swarm::SwarmEvent;
 use serde::{Deserialize, Serialize};
@@ -160,8 +160,18 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn verify_difficulty(hash: &[u8; 32]) -> bool {
-    hash[0] == 0x00 && hash[1] == 0x00
+pub fn save_block_png(filepath: &std::path::Path, image_buffer: &coywin_steg::ImageBuffer) -> std::io::Result<()> {
+    let file = std::fs::File::create(filepath)?;
+    let mut w = std::io::BufWriter::new(file);
+    let encoder = image::codecs::png::PngEncoder::new(&mut w);
+    image::ImageEncoder::write_image(
+        encoder,
+        &image_buffer.data,
+        image_buffer.width,
+        image_buffer.height,
+        image::ColorType::Rgb8,
+    ).map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
+    Ok(())
 }
 
 async fn generate_initial_block(state: Arc<AppState>) {
@@ -194,16 +204,9 @@ async fn generate_initial_block(state: Arc<AppState>) {
     let height = 1080;
 
     if let Ok(image_buffer) = execute_full_pipeline(block_hash, &signature, width, height, seed) {
-        if let Ok(file) = std::fs::File::create(&filepath) {
-            let mut w = std::io::BufWriter::new(file);
-            let encoder = image::codecs::png::PngEncoder::new(&mut w);
-            let _ = image::ImageEncoder::write_image(
-                encoder,
-                &image_buffer.data,
-                image_buffer.width,
-                image_buffer.height,
-                image::ColorType::Rgb8,
-            );
+        if let Err(e) = save_block_png(&filepath, &image_buffer) {
+            eprintln!("[!] Failed to save genesis block PNG: {}", e);
+        } else {
             println!("[SUCCESS] Saved Genesis Block PNG to {:?}", filepath);
         }
     }
@@ -316,7 +319,7 @@ async fn generate_block_handler(
         let hash_tmp = commitment_hasher.finalize();
         let mut arr = [0u8; 32];
         arr.copy_from_slice(&hash_tmp);
-        if verify_difficulty(&arr) {
+        if verify_posw(&arr) {
             block_hash = arr;
             break;
         }
@@ -346,16 +349,8 @@ async fn generate_block_handler(
     // Single-pass deterministic image generation on blocking thread pool
     tokio::task::spawn_blocking(move || {
         if let Ok(image_buffer) = execute_full_pipeline(hash_clone, &sig_clone, width, height, seed) {
-            if let Ok(file) = std::fs::File::create(&filepath_clone) {
-                let mut w = std::io::BufWriter::new(file);
-                let encoder = image::codecs::png::PngEncoder::new(&mut w);
-                let _ = image::ImageEncoder::write_image(
-                    encoder,
-                    &image_buffer.data,
-                    image_buffer.width,
-                    image_buffer.height,
-                    image::ColorType::Rgb8,
-                );
+            if let Err(e) = save_block_png(&filepath_clone, &image_buffer) {
+                eprintln!("[!] Failed to save API generated block PNG: {}", e);
             }
         }
     })
@@ -502,6 +497,13 @@ async fn root_dashboard_handler(State(state): State<Arc<AppState>>) -> Html<Stri
     Html(html)
 }
 
+struct VerificationResult {
+    message_id: libp2p::gossipsub::MessageId,
+    peer_id: libp2p::PeerId,
+    accepted: bool,
+    block_data: Option<BlockData>,
+}
+
 async fn run_p2p_subsystem(
     state: Arc<AppState>,
     rx: &mut tokio::sync::mpsc::Receiver<BlockProposed>,
@@ -512,8 +514,27 @@ async fn run_p2p_subsystem(
     let _ = swarm.listen_on("/ip4/0.0.0.0/tcp/0".parse()?);
     let topic = libp2p::gossipsub::IdentTopic::new("coywin-blocks");
 
+    let (val_tx, mut val_rx) = tokio::sync::mpsc::channel::<VerificationResult>(100);
+
     loop {
         tokio::select! {
+            Some(val_res) = val_rx.recv() => {
+                let acceptance = if val_res.accepted {
+                    libp2p::gossipsub::MessageAcceptance::Accept
+                } else {
+                    libp2p::gossipsub::MessageAcceptance::Reject
+                };
+                let _ = swarm.behaviour_mut().gossipsub.report_message_validation_result(
+                    &val_res.message_id, 
+                    &val_res.peer_id, 
+                    acceptance
+                );
+                
+                if let Some(b) = val_res.block_data {
+                    let mut blocks = state.blocks.write().await;
+                    blocks.push(b);
+                }
+            }
             Some(proposal) = rx.recv() => {
                 if let Ok(serialized) = serde_json::to_vec(&proposal) {
                     let _ = swarm.behaviour_mut().gossipsub.publish(topic.clone(), serialized);
@@ -540,7 +561,7 @@ async fn run_p2p_subsystem(
                     }
                 }
                 SwarmEvent::Behaviour(CoywinBehaviourEvent::Gossipsub(gossipsub_event)) => match gossipsub_event {
-                    libp2p::gossipsub::Event::Message { propagation_source: peer_id, message, .. } => {
+                    libp2p::gossipsub::Event::Message { propagation_source: peer_id, message_id, message } => {
                         println!("[P2P Gossip] Received block proposal from {}", peer_id);
                         if let Ok(proposal) = serde_json::from_slice::<BlockProposed>(&message.data) {
                             let hash = proposal.hash;
@@ -548,26 +569,35 @@ async fn run_p2p_subsystem(
                             let pub_key_bytes = proposal.pub_key;
                             let nonce = proposal.nonce;
                             let state_clone = state.clone();
+                            let val_tx_clone = val_tx.clone();
 
                             // 1. Verify PoSW Difficulty
-                            if !verify_difficulty(&hash) {
+                            if !verify_posw(&hash) {
                                 println!("[!] Rejected block from {}: invalid difficulty", peer_id);
+                                let _ = val_tx_clone.try_send(VerificationResult { message_id, peer_id, accepted: false, block_data: None });
                                 continue;
                             }
 
                             // 2. Verify ML-DSA-87 Signature
-                            let mut message = b"COYWIN_BLOCK_HEADER_V2".to_vec();
-                            message.extend_from_slice(&hash);
+                            let mut s_msg = b"COYWIN_BLOCK_HEADER_V2".to_vec();
+                            s_msg.extend_from_slice(&hash);
                             
                             use pqcrypto_traits::sign::{PublicKey as PKTrait, DetachedSignature as DSigTrait};
                             if let Ok(pk) = dilithium5::PublicKey::from_bytes(&pub_key_bytes) {
                                 if let Ok(dsig) = dilithium5::DetachedSignature::from_bytes(&sig) {
-                                    if dilithium5::verify_detached_signature(&dsig, &message, &pk).is_err() {
+                                    if dilithium5::verify_detached_signature(&dsig, &s_msg, &pk).is_err() {
                                         println!("[!] Rejected block from {}: invalid signature", peer_id);
+                                        let _ = val_tx_clone.try_send(VerificationResult { message_id, peer_id, accepted: false, block_data: None });
                                         continue;
                                     }
-                                } else { continue; }
-                            } else { continue; }
+                                } else { 
+                                    let _ = val_tx_clone.try_send(VerificationResult { message_id, peer_id, accepted: false, block_data: None });
+                                    continue; 
+                                }
+                            } else { 
+                                let _ = val_tx_clone.try_send(VerificationResult { message_id, peer_id, accepted: false, block_data: None });
+                                continue; 
+                            }
 
                             tokio::spawn(async move {
                                 let width = 1920;
@@ -580,20 +610,14 @@ async fn run_p2p_subsystem(
                                     let filename = format!("{}_{}.png", phonetic_name, &hash_hex[0..8]);
                                     let filepath = state_clone.output_dir.join(&filename);
 
-                                    if let Ok(file) = std::fs::File::create(&filepath) {
-                                        let mut w = std::io::BufWriter::new(file);
-                                        let encoder = image::codecs::png::PngEncoder::new(&mut w);
-                                        let _ = image::ImageEncoder::write_image(
-                                            encoder,
-                                            &image_buffer.data,
-                                            image_buffer.width,
-                                            image_buffer.height,
-                                            image::ColorType::Rgb8,
-                                        );
+                                    if let Err(e) = save_block_png(&filepath, &image_buffer) {
+                                        eprintln!("[!] Failed to save gossiped block PNG: {}", e);
+                                        let _ = val_tx_clone.send(VerificationResult { message_id, peer_id, accepted: false, block_data: None }).await;
+                                        return;
                                     }
 
-                                    let new_height = state_clone.current_height.fetch_add(1, Ordering::SeqCst) + 1;
-                                    let now_ts = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
+                                    let new_height = state_clone.current_height.fetch_add(1, std::sync::atomic::Ordering::SeqCst) + 1;
+                                    let now_ts = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs();
 
                                     let received_block = BlockData {
                                         height: new_height,
@@ -610,10 +634,13 @@ async fn run_p2p_subsystem(
                                         summary: "Block received from P2P peer.".to_string(),
                                     };
 
-                                    let mut blocks = state_clone.blocks.write().await;
-                                    blocks.push(received_block);
+                                    let _ = val_tx_clone.send(VerificationResult { message_id, peer_id, accepted: true, block_data: Some(received_block) }).await;
+                                } else {
+                                    let _ = val_tx_clone.send(VerificationResult { message_id, peer_id, accepted: false, block_data: None }).await;
                                 }
                             });
+                        } else {
+                            let _ = val_tx.try_send(VerificationResult { message_id, peer_id, accepted: false, block_data: None });
                         }
                     }
                     _ => {}

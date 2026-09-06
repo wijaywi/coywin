@@ -38,6 +38,7 @@ pub async fn build_swarm() -> Result<Swarm<CoywinBehaviour>, Box<dyn std::error:
             let gossipsub_config = gossipsub::ConfigBuilder::default()
                 .heartbeat_interval(Duration::from_secs(1))
                 .validation_mode(gossipsub::ValidationMode::Strict)
+                .validate_messages()
                 .message_id_fn(message_id_fn)
                 .build()
                 .expect("Valid config");

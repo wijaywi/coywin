@@ -2,6 +2,10 @@ use coywin_steg::{ImageBuffer, embed_payload_dispatch};
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 
+pub fn verify_posw(hash: &[u8; 32]) -> bool {
+    hash[0] == 0x00 && hash[1] == 0x00
+}
+
 pub fn generate_bip_coywin_name(hash: &[u8; 32]) -> String {
     let syllables = [
         "ka", "ru", "ma", "ti", "vo", "la", "ne", "pi", "ro", "su",

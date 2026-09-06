@@ -6,6 +6,7 @@ edition = "2021"
 [dependencies]
 coywin-network = { path = "../coywin-network" }
 coywin-render = { path = "../coywin-render" }
+coywin-steg = { path = "../coywin-steg" }
 tokio = { version = "1.28", features = ["full"] }
 libp2p = { version = "0.52", features = ["tokio", "gossipsub", "mdns", "noise", "yamux", "tcp", "macros"] }
 futures = "0.3"

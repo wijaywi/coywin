@@ -528,6 +528,7 @@ dependencies = [
  "axum",
  "coywin-network",
  "coywin-render",
+ "coywin-steg",
  "futures",
  "image",
  "libp2p",
