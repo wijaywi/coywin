@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use coywin_zksteg::{ZkStegCircuit, StegSampleWitness};
 use halo2_proofs::dev::MockProver;
-use halo2curves::bn256::Fr;
+use halo2curves::pasta::Fp;
 use std::marker::PhantomData;
 
 #[wasm_bindgen]
@@ -37,8 +37,8 @@ impl ZkStegVerifier {
         // Calculate expected bit (dynamic XOR)
         let kappa = (pixel_r & 1) ^ (pixel_g & 1);
         let expected = (pixel_b & 1) ^ kappa;
-        let expected_field = halo2_proofs::circuit::Value::known(Fr::from(expected as u64));
 
+        let expected_field = halo2_proofs::circuit::Value::known(Fp::from(expected as u64));
         let sample = StegSampleWitness {
             prime,
             quotient_x,
@@ -59,7 +59,7 @@ impl ZkStegVerifier {
         };
 
         // We use MockProver to validate the structural logic of the circuit inside Wasm
-        let public_instances = vec![vec![Fr::from(expected as u64)]];
+        let public_instances = vec![vec![Fp::from(expected as u64)]];
         let k = 8;
         
         match MockProver::run(k, &circuit, public_instances) {

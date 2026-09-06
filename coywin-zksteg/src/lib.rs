@@ -131,6 +131,8 @@ pub struct StegSampleWitness<F: PrimeField> {
     pub expected_bit: Value<F>,
 }
 
+pub const MAX_SAMPLES: usize = 1;
+
 #[derive(Clone, Default)]
 pub struct ZkStegCircuit<F: PrimeField> {
     pub image_width: u64,
@@ -144,10 +146,24 @@ impl<F: PrimeField> Circuit<F> for ZkStegCircuit<F> {
     type FloorPlanner = SimpleFloorPlanner;
 
     fn without_witnesses(&self) -> Self {
+        let dummy_samples = vec![
+            StegSampleWitness {
+                prime: 0,
+                quotient_x: 0,
+                coord_x: 0,
+                quotient_y: 0,
+                coord_y: 0,
+                pixel_r: 0,
+                pixel_g: 0,
+                pixel_b: 0,
+                expected_bit: Value::unknown(),
+            }; MAX_SAMPLES
+        ];
+
         Self {
             image_width: self.image_width,
             image_height: self.image_height,
-            samples: vec![],
+            samples: dummy_samples,
             _marker: PhantomData,
         }
     }
@@ -161,12 +177,29 @@ impl<F: PrimeField> Circuit<F> for ZkStegCircuit<F> {
         config: Self::Config,
         mut layouter: impl Layouter<F>,
     ) -> Result<(), Error> {
-        let mut recovered_cells: Vec<AssignedCell<F, F>> = Vec::with_capacity(self.samples.len());
+        let mut recovered_cells: Vec<AssignedCell<F, F>> = Vec::with_capacity(MAX_SAMPLES);
+
+        // Pad samples up to MAX_SAMPLES
+        let mut padded_samples = self.samples.clone();
+        padded_samples.resize(
+            MAX_SAMPLES,
+            StegSampleWitness {
+                prime: 0,
+                quotient_x: 0,
+                coord_x: 0,
+                quotient_y: 0,
+                coord_y: 0,
+                pixel_r: 0,
+                pixel_g: 0,
+                pixel_b: 0,
+                expected_bit: Value::unknown(),
+            }
+        );
 
         layouter.assign_region(
             || "zk-Steg Verification Matrix",
             |mut region| {
-                for (i, sample) in self.samples.iter().enumerate() {
+                for (i, sample) in padded_samples.iter().enumerate() {
                     config.s_coord.enable(&mut region, i)?;
                     config.s_extract.enable(&mut region, i)?;
 
@@ -198,7 +231,7 @@ impl<F: PrimeField> Circuit<F> for ZkStegCircuit<F> {
             },
         )?;
 
-        for (i, cell) in recovered_cells.iter().enumerate().take(32) {
+        for (i, cell) in recovered_cells.iter().enumerate().take(MAX_SAMPLES) {
             layouter.constrain_instance(cell.cell(), config.instance, i)?;
         }
 
