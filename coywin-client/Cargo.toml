@@ -10,6 +10,6 @@ crate-type = ["cdylib", "rlib"]
 coywin-zksteg = { path = "../coywin-zksteg" }
 wasm-bindgen = "0.2"
 halo2_proofs = { version = "0.3.0", default-features = false }
-halo2curves = "0.1.0"
+pasta_curves = "0.5"
 ff = "0.13"
 getrandom = { version = "0.2", features = ["js"] }

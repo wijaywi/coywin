@@ -485,7 +485,7 @@ dependencies = [
  "ff",
  "getrandom 0.2.17",
  "halo2_proofs",
- "halo2curves",
+ "pasta_curves",
  "wasm-bindgen",
 ]
 
@@ -1184,26 +1184,6 @@ dependencies = [
  "pasta_curves",
  "rand_core",
  "tracing",
-]
-
-[[package]]
-name = "halo2curves"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e6b1142bd1059aacde1b477e0c80c142910f1ceae67fc619311d6a17428007ab"
-dependencies = [
- "blake2b_simd",
- "ff",
- "group",
- "lazy_static",
- "num-bigint",
- "num-traits",
- "pasta_curves",
- "paste",
- "rand",
- "rand_core",
- "static_assertions",
- "subtle",
 ]
 
 [[package]]

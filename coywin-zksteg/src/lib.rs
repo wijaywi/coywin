@@ -131,7 +131,7 @@ pub struct StegSampleWitness<F: PrimeField> {
     pub expected_bit: Value<F>,
 }
 
-pub const MAX_SAMPLES: usize = 1;
+pub const MAX_SAMPLES: usize = 32;
 
 #[derive(Clone, Default)]
 pub struct ZkStegCircuit<F: PrimeField> {
@@ -156,7 +156,7 @@ impl<F: PrimeField> Circuit<F> for ZkStegCircuit<F> {
                 pixel_r: 0,
                 pixel_g: 0,
                 pixel_b: 0,
-                expected_bit: Value::unknown(),
+                expected_bit: Value::known(F::ZERO),
             }; MAX_SAMPLES
         ];
 
@@ -192,7 +192,7 @@ impl<F: PrimeField> Circuit<F> for ZkStegCircuit<F> {
                 pixel_r: 0,
                 pixel_g: 0,
                 pixel_b: 0,
-                expected_bit: Value::unknown(),
+                expected_bit: Value::known(F::ZERO),
             }
         );
 

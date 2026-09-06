@@ -1,7 +1,7 @@
 use wasm_bindgen::prelude::*;
 use coywin_zksteg::{ZkStegCircuit, StegSampleWitness};
 use halo2_proofs::dev::MockProver;
-use halo2curves::pasta::Fp;
+use pasta_curves::Fp;
 use std::marker::PhantomData;
 
 #[wasm_bindgen]
@@ -59,7 +59,9 @@ impl ZkStegVerifier {
         };
 
         // We use MockProver to validate the structural logic of the circuit inside Wasm
-        let public_instances = vec![vec![Fp::from(expected as u64)]];
+        let mut instances = vec![Fp::from(expected as u64)];
+        instances.resize(32, Fp::from(0u64));
+        let public_instances = vec![instances];
         let k = 8;
         
         match MockProver::run(k, &circuit, public_instances) {
