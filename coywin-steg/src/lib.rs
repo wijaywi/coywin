@@ -129,124 +129,16 @@ impl PrimeGridSteg {
     }
 }
 
-// =====================================================================
-// VECTORIZED AVX-512 / AVX2 ENGINE EXTENSIONS
-// =====================================================================
-use std::arch::x86_64::*;
-
-#[target_feature(enable = "avx2")]
-pub unsafe fn embed_chunk_avx2(
-    framebuffer: *mut u8,
-    byte_offsets: &[usize; 8],
-    payload_byte: u8, // 8 bits mapped across 8 lanes
-) {
-    // 1. Load 8 unaligned 24-bit RGB pixels
-    let mut pixels = [0u32; 8];
-    for i in 0..8 {
-        let ptr = framebuffer.add(byte_offsets[i]);
-        let r = *ptr as u32;
-        let g = *ptr.add(1) as u32;
-        let b = *ptr.add(2) as u32;
-        pixels[i] = r | (g << 8) | (b << 16);
-    }
-
-    let v_pixels = _mm256_loadu_si256(pixels.as_ptr() as *const __m256i);
-
-    // Extract channel LSBs
-    let mask_r = _mm256_set1_epi32(0x00000001);
-    let mask_g = _mm256_set1_epi32(0x00000100);
-
-    let lsb_r = _mm256_and_si256(v_pixels, mask_r);
-    let lsb_g = _mm256_srli_epi32::<8>(_mm256_and_si256(v_pixels, mask_g));
-
-    // Dynamic Key Derivation: kappa = LSB(R) ^ LSB(G)
-    let kappa = _mm256_xor_si256(lsb_r, lsb_g);
-
-    // Expand 8-bit payload into 8 x 32-bit lane bits
-    let v_payload_bits = _mm256_set_epi32(
-        ((payload_byte >> 7) & 1) as i32,
-        ((payload_byte >> 6) & 1) as i32,
-        ((payload_byte >> 5) & 1) as i32,
-        ((payload_byte >> 4) & 1) as i32,
-        ((payload_byte >> 3) & 1) as i32,
-        ((payload_byte >> 2) & 1) as i32,
-        ((payload_byte >> 1) & 1) as i32,
-        (payload_byte & 1) as i32,
-    );
-
-    // Ciphered bit: beta = payload_bit ^ kappa
-    let beta = _mm256_xor_si256(v_payload_bits, kappa);
-    let beta_in_blue_pos = _mm256_slli_epi32::<16>(beta);
-
-    // Clear Blue LSB and apply ciphered bit
-    let clear_blue_lsb_mask = _mm256_set1_epi32(!0x00010000);
-    let v_pixels_cleared = _mm256_and_si256(v_pixels, clear_blue_lsb_mask);
-    let v_pixels_final = _mm256_or_si256(v_pixels_cleared, beta_in_blue_pos);
-
-    // Store back to buffer
-    let mut out = [0u32; 8];
-    _mm256_storeu_si256(out.as_mut_ptr() as *mut __m256i, v_pixels_final);
-
-    for i in 0..8 {
-        let ptr = framebuffer.add(byte_offsets[i]);
-        *ptr.add(2) = ((out[i] >> 16) & 0xFF) as u8; // Write modified Blue byte
-    }
-}
-
-// AVX-512 extraction layout (ZMM opmasks)
-#[target_feature(enable = "avx512f,avx512bw,avx512cd")]
-pub unsafe fn extract_chunk_avx512(
-    framebuffer: *const u8,
-    byte_offsets: &[usize; 16],
-) -> u16 {
-    let mut pixel_words = [0u32; 16];
-    for i in 0..16 {
-        let ptr = framebuffer.add(byte_offsets[i]);
-        pixel_words[i] = (*ptr as u32) | ((*ptr.add(1) as u32) << 8) | ((*ptr.add(2) as u32) << 16);
-    }
-
-    let v_pixels = _mm512_loadu_si512(pixel_words.as_ptr() as *const __m512i);
-
-    let mask_r = _mm512_set1_epi32(0x00000001);
-    let mask_g = _mm512_set1_epi32(0x00000100);
-    let mask_b = _mm512_set1_epi32(0x00010000);
-
-    let lsb_r = _mm512_and_epi32(v_pixels, mask_r);
-    let lsb_g = _mm512_srli_epi32::<8>(_mm512_and_epi32(v_pixels, mask_g));
-    let lsb_b = _mm512_srli_epi32::<16>(_mm512_and_epi32(v_pixels, mask_b));
-
-    let kappa = _mm512_xor_epi32(lsb_r, lsb_g);
-    let recovered_bits = _mm512_xor_epi32(lsb_b, kappa);
-
-    let zero = _mm512_setzero_epi32();
-    let mask_cmp = _mm512_cmp_epi32_mask::<4>(recovered_bits, zero);
-
-    mask_cmp as u16
-}
-
 pub fn embed_payload_dispatch(
     framebuffer: &mut [u8],
     width: u32,
     height: u32,
     block_hash: &[u8; 32],
     payload_bits: &[bool],
-) {
-    // Dynamic CPU Feature Dispatcher
-    #[cfg(target_arch = "x86_64")]
-    {
-        if is_x86_feature_detected!("avx512f") && is_x86_feature_detected!("avx512bw") {
-            // High-density enterprise servers (Implementation omitted for brevity, wrapped in unsafe)
-            // unsafe { embed_avx512_optimized(...) };
-            // return;
-        }
-        if is_x86_feature_detected!("avx2") {
-            // Standard modern node hardware
-            // unsafe { embed_avx2_optimized(...) };
-            // return;
-        }
-    }
+) -> Result<(), &'static str> {
     let mut img = ImageBuffer { width, height, data: framebuffer.to_vec() };
-    PrimeGridSteg::embed_payload(&mut img, block_hash, payload_bits).unwrap();
+    PrimeGridSteg::embed_payload(&mut img, block_hash, payload_bits)?;
     framebuffer.copy_from_slice(&img.data);
+    Ok(())
 }
 mod tests;

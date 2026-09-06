@@ -11,6 +11,8 @@ use futures::StreamExt;
 use libp2p::swarm::SwarmEvent;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use pqcrypto_traits::sign::{PublicKey, SecretKey, DetachedSignature};
+use pqcrypto_dilithium::dilithium5;
 use std::{
     error::Error,
     net::SocketAddr,
@@ -71,6 +73,8 @@ struct AppState {
     peer_count: RwLock<usize>,
     output_dir: PathBuf,
     p2p_tx: Option<tokio::sync::mpsc::Sender<BlockProposed>>,
+    node_pk: Vec<u8>,
+    node_sk: pqcrypto_dilithium::dilithium5::SecretKey,
 }
 
 #[tokio::main]
@@ -95,6 +99,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let (p2p_tx, mut p2p_rx) = tokio::sync::mpsc::channel::<BlockProposed>(32);
 
+    let (pk, sk) = dilithium5::keypair();
+
     let state = Arc::new(AppState {
         start_time: Instant::now(),
         blocks: RwLock::new(Vec::new()),
@@ -102,6 +108,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         peer_count: RwLock::new(0),
         output_dir: output_dir.clone(),
         p2p_tx: Some(p2p_tx),
+        node_pk: pk.as_bytes().to_vec(),
+        node_sk: sk,
     });
 
     // Generate Genesis Block deterministically on startup if empty
@@ -152,6 +160,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+pub fn verify_difficulty(hash: &[u8; 32]) -> bool {
+    hash[0] == 0x00 && hash[1] == 0x00
+}
+
 async fn generate_initial_block(state: Arc<AppState>) {
     let mut blocks = state.blocks.write().await;
     if !blocks.is_empty() {
@@ -166,9 +178,11 @@ async fn generate_initial_block(state: Arc<AppState>) {
     let mut block_hash = [0u8; 32];
     block_hash.copy_from_slice(&commitment_hasher.finalize());
 
-    let mut signature = vec![0u8; 4627];
-    signature[24] = 42;
-    signature[25] = 137;
+    let mut message = b"COYWIN_BLOCK_HEADER_V2".to_vec();
+    message.extend_from_slice(&block_hash);
+    
+    let sig = dilithium5::detached_sign(&message, &state.node_sk);
+    let signature = sig.as_bytes().to_vec();
 
     let phonetic_name = generate_bip_coywin_name(&block_hash);
     let hash_hex = hex_string(&block_hash);
@@ -288,21 +302,33 @@ async fn generate_block_handler(
 
     let seed = custom_seed.unwrap_or_else(|| now_ts.wrapping_add(new_height));
 
-    let mut commitment_hasher = Sha256::new();
-    commitment_hasher.update(b"COYWIN_BLOCK_HEADER_V2");
-    commitment_hasher.update(&new_height.to_le_bytes());
-    commitment_hasher.update(&now_ts.to_le_bytes());
-    commitment_hasher.update(&seed.to_le_bytes());
-    if let Some(ref t) = tag {
-        commitment_hasher.update(t.as_bytes());
-    }
-
     let mut block_hash = [0u8; 32];
-    block_hash.copy_from_slice(&commitment_hasher.finalize());
+    let mut nonce_iter = seed;
+    loop {
+        let mut commitment_hasher = Sha256::new();
+        commitment_hasher.update(b"COYWIN_BLOCK_HEADER_V2");
+        commitment_hasher.update(&new_height.to_le_bytes());
+        commitment_hasher.update(&now_ts.to_le_bytes());
+        commitment_hasher.update(&nonce_iter.to_le_bytes());
+        if let Some(ref t) = tag {
+            commitment_hasher.update(t.as_bytes());
+        }
+        let hash_tmp = commitment_hasher.finalize();
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(&hash_tmp);
+        if verify_difficulty(&arr) {
+            block_hash = arr;
+            break;
+        }
+        nonce_iter = nonce_iter.wrapping_add(1);
+    }
+    let seed = nonce_iter; // Final valid nonce
 
-    let mut signature = vec![0u8; 4627];
-    signature[24] = (new_height % 256) as u8;
-    signature[25] = ((seed >> 8) % 256) as u8;
+    let mut message = b"COYWIN_BLOCK_HEADER_V2".to_vec();
+    message.extend_from_slice(&block_hash);
+
+    let sig = dilithium5::detached_sign(&message, &state.node_sk);
+    let signature = sig.as_bytes().to_vec();
 
     let phonetic_name = generate_bip_coywin_name(&block_hash);
     let hash_hex = hex_string(&block_hash);
@@ -361,6 +387,7 @@ async fn generate_block_handler(
         let proposal = BlockProposed {
             hash: block_hash,
             signature,
+            pub_key: state.node_pk.clone(),
             nonce: seed,
         };
         let _ = tx.send(proposal).await;
@@ -518,8 +545,29 @@ async fn run_p2p_subsystem(
                         if let Ok(proposal) = serde_json::from_slice::<BlockProposed>(&message.data) {
                             let hash = proposal.hash;
                             let sig = proposal.signature.clone();
+                            let pub_key_bytes = proposal.pub_key;
                             let nonce = proposal.nonce;
                             let state_clone = state.clone();
+
+                            // 1. Verify PoSW Difficulty
+                            if !verify_difficulty(&hash) {
+                                println!("[!] Rejected block from {}: invalid difficulty", peer_id);
+                                continue;
+                            }
+
+                            // 2. Verify ML-DSA-87 Signature
+                            let mut message = b"COYWIN_BLOCK_HEADER_V2".to_vec();
+                            message.extend_from_slice(&hash);
+                            
+                            use pqcrypto_traits::sign::{PublicKey as PKTrait, DetachedSignature as DSigTrait};
+                            if let Ok(pk) = dilithium5::PublicKey::from_bytes(&pub_key_bytes) {
+                                if let Ok(dsig) = dilithium5::DetachedSignature::from_bytes(&sig) {
+                                    if dilithium5::verify_detached_signature(&dsig, &message, &pk).is_err() {
+                                        println!("[!] Rejected block from {}: invalid signature", peer_id);
+                                        continue;
+                                    }
+                                } else { continue; }
+                            } else { continue; }
 
                             tokio::spawn(async move {
                                 let width = 1920;

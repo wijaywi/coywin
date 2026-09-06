@@ -531,6 +531,8 @@ dependencies = [
  "futures",
  "image",
  "libp2p",
+ "pqcrypto-dilithium",
+ "pqcrypto-traits",
  "rand",
  "serde",
  "serde_json",

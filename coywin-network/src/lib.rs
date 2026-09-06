@@ -10,6 +10,7 @@ use std::time::Duration;
 pub struct BlockProposed {
     pub hash: [u8; 32],
     pub signature: Vec<u8>,
+    pub pub_key: Vec<u8>,
     pub nonce: u64,
 }
 

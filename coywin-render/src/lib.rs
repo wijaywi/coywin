@@ -142,7 +142,7 @@ pub fn execute_full_pipeline(
         image.height, 
         &block_hash, 
         &payload_bits
-    );
+    )?;
 
     Ok(image)
 }

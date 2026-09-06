@@ -20,10 +20,11 @@ impl ZkStegVerifier {
         }
     }
 
-    /// Verifies a Zero-Knowledge Proof of the Steganographic Payload
-    /// In a production environment, this would verify a Groth16/Plonk proof natively in Wasm.
-    /// Here we mock the circuit validation constraints on the client side.
-    pub fn verify_steg_proof(&self, prime: u64, pixel_r: u8, pixel_g: u8, pixel_b: u8) -> bool {
+    /// MOCKS the verification of a Zero-Knowledge Proof of the Steganographic Payload
+    /// WARNING: This function uses MockProver to validate structural circuit logic.
+    /// It re-derives the expected witness internally and provides NO cryptographic assurance.
+    /// In a production environment, this must be replaced with a real halo2 verifier.
+    pub fn mock_verify_steg_proof_for_development(&self, prime: u64, pixel_r: u8, pixel_g: u8, pixel_b: u8) -> bool {
         let width = self.image_width;
         let height = self.image_height;
 

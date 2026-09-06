@@ -30,9 +30,7 @@ impl CoywinLedger {
                 return Err("Current owner does not match ledger state. Theft attempt denied.");
             }
         } else {
-            // Art does not exist yet (genesis issue?) Or maybe we allow unowned art for some reason?
-            // Wait, if it's not owned, it can't be gifted unless we assume genesis allows it.
-            // Let's keep original behavior: if it's there, check it.
+            return Err("Art not found in ledger. Cannot gift unowned art.");
         }
 
         // Replay protection: Check nonce
@@ -93,6 +91,16 @@ impl CoywinLedger {
 
     pub fn get_owner(&self, art_hash: &[u8; 32]) -> Option<Vec<u8>> {
         self.db.get(art_hash).ok().flatten().map(|v| v.to_vec())
+    }
+
+    pub fn register_genesis_art(&self, art_hash: &[u8; 32], owner_pubkey: &[u8]) -> Result<(), &'static str> {
+        // Prevent overwriting existing art owner
+        if self.db.contains_key(art_hash).unwrap_or(false) {
+            return Err("Art already exists in ledger.");
+        }
+        self.db.insert(art_hash, owner_pubkey).map_err(|_| "DB Write Error")?;
+        self.db.flush().map_err(|_| "DB Flush Error")?;
+        Ok(())
     }
 }
 
