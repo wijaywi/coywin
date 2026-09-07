@@ -4,7 +4,7 @@
   <img src="coywin_logo_.png" alt="Coywin Logo" width="210"/>
 </p>
 
-# THE COYWIN V5 MANIFESTO
+# THE COYWIN v5 MANIFESTO
 
 **🅲 I. WE REJECT THE CASINO**
 Every modern blockchain is a hyper-capitalist casino. Every token is a speculative disease. We do not buy, and we do not sell. Coywin V5 obliterates the marketplace. There are no liquidity pools, no fractional shares, and no fiat bridges. The private key is not a financial instrument; it is a mathematical artifact. If it changes hands, it changes hands as a Gift. 
