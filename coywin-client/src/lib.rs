@@ -1,4 +1,4 @@
-use wasm_bindgen::prelude::*;
+﻿use wasm_bindgen::prelude::*;
 use coywin_zksteg::{ZkStegCircuit, StegSampleWitness};
 use halo2_proofs::dev::MockProver;
 use halo2_proofs::poly::commitment::Params;
@@ -76,6 +76,7 @@ impl ZkStegVerifier {
         }
     }
 
+
     /// Verifikasi ZK sungguhan. Satu-satunya input yang dipercaya dari luar
     /// adalah `proof` itu sendiri dan piksel yang sedang diklaim.
     /// `params` dan `vk` SELALU diturunkan dari konstanta bawaan binary,
@@ -88,24 +89,40 @@ impl ZkStegVerifier {
         pixel_b: u8,
     ) -> bool {
         // 1. Params SELALU dari konstanta yang dipanggang di binary, bukan dari caller.
-        let params = match Params::<vesta::Affine>::read(&mut &CANONICAL_IPA_PARAMS_BYTES[..]) {
-            Ok(p) => p,
-            Err(_) => return false,
-        };
+        let params =
+            match Params::<vesta::Affine>::read(&mut &CANONICAL_IPA_PARAMS_BYTES[..]) {
+                Ok(p) => p,
+                Err(_) => return false,
+            };
 
         // 2. VK direkonstruksi deterministik dari params kanonik + dimensi milik `self`.
-        let vk = match coywin_zksteg::reconstruct_vk(&params, self.image_width, self.image_height) {
+        let vk = match coywin_zksteg::reconstruct_vk(
+            &params,
+            self.image_width,
+            self.image_height,
+        ) {
             Ok(vk) => vk,
             Err(_) => return false,
         };
 
-        // 3. Witness publik & padding — tidak berubah dari versi sebelumnya.
+        // 3. Witness publik & padding.
         let kappa = (pixel_r & 1) ^ (pixel_g & 1);
         let expected = (pixel_b & 1) ^ kappa;
         let mut instances = vec![Fp::from(expected as u64)];
         instances.resize(32, Fp::from(0u64));
 
         // 4. Verifikasi kriptografis nyata.
-        coywin_zksteg::verify_steg_proof(&params, &vk, proof, &[&instances])
+        coywin_zksteg::verify_steg_proof(
+            &params,
+            &vk,
+            proof,
+            &[&instances],
+        )
+    }
+    pub fn test_vk_read(params_bytes: &[u8], _vk_bytes: &[u8]) -> bool {
+        use halo2_proofs::poly::commitment::Params;
+        use pasta_curves::vesta;
+
+        Params::<vesta::Affine>::read(&mut &params_bytes[..]).is_ok()
     }
 }
