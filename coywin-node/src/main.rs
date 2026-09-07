@@ -1,3 +1,6 @@
+pub mod thermal_governor;
+pub mod thread_limiter;
+
 use axum::{
     extract::{Path as AxumPath, State},
     http::StatusCode,
