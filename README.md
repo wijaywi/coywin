@@ -1,7 +1,7 @@
 # COYWIN V5
 
 <p align="center">
-  <img src="coywin_logo.png" alt="Coywin Logo" width="210"/>
+  <img src="coywin_logo_.png" alt="Coywin Logo" width="210"/>
 </p>
 
 # THE COYWIN V5 MANIFESTO
