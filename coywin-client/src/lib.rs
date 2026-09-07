@@ -1,8 +1,14 @@
 use wasm_bindgen::prelude::*;
 use coywin_zksteg::{ZkStegCircuit, StegSampleWitness};
 use halo2_proofs::dev::MockProver;
-use pasta_curves::Fp;
+use halo2_proofs::poly::commitment::Params;
+use pasta_curves::{vesta, Fp};
 use std::marker::PhantomData;
+
+// Root of Trust: dipanggang ke dalam binary WASM saat kompilasi.
+// JS tidak bisa lagi mengontrol kurva/params ini lewat argumen fungsi apa pun.
+static CANONICAL_IPA_PARAMS_BYTES: &[u8] =
+    include_bytes!("../assets/coywin_ipa_params.bin");
 
 #[wasm_bindgen]
 pub struct ZkStegVerifier {
@@ -68,5 +74,38 @@ impl ZkStegVerifier {
             Ok(prover) => prover.verify().is_ok(),
             Err(_) => false,
         }
+    }
+
+    /// Verifikasi ZK sungguhan. Satu-satunya input yang dipercaya dari luar
+    /// adalah `proof` itu sendiri dan piksel yang sedang diklaim.
+    /// `params` dan `vk` SELALU diturunkan dari konstanta bawaan binary,
+    /// tidak pernah dari argumen pemanggil.
+    pub fn verify_steg_proof_real(
+        &self,
+        proof: &[u8],
+        pixel_r: u8,
+        pixel_g: u8,
+        pixel_b: u8,
+    ) -> bool {
+        // 1. Params SELALU dari konstanta yang dipanggang di binary, bukan dari caller.
+        let params = match Params::<vesta::Affine>::read(&mut &CANONICAL_IPA_PARAMS_BYTES[..]) {
+            Ok(p) => p,
+            Err(_) => return false,
+        };
+
+        // 2. VK direkonstruksi deterministik dari params kanonik + dimensi milik `self`.
+        let vk = match coywin_zksteg::reconstruct_vk(&params, self.image_width, self.image_height) {
+            Ok(vk) => vk,
+            Err(_) => return false,
+        };
+
+        // 3. Witness publik & padding — tidak berubah dari versi sebelumnya.
+        let kappa = (pixel_r & 1) ^ (pixel_g & 1);
+        let expected = (pixel_b & 1) ^ kappa;
+        let mut instances = vec![Fp::from(expected as u64)];
+        instances.resize(32, Fp::from(0u64));
+
+        // 4. Verifikasi kriptografis nyata.
+        coywin_zksteg::verify_steg_proof(&params, &vk, proof, &[&instances])
     }
 }
