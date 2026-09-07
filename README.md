@@ -1,4 +1,4 @@
-# COYWIN V5
+# COYWIN v5
 
 <p align="center">
   <img src="coywin_logo_.png" alt="Coywin Logo" width="210"/>
